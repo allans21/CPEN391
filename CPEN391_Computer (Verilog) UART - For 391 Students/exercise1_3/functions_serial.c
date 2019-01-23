@@ -10,6 +10,8 @@
 #define RS232_ScratchReg (*(volatile unsigned char *)(0xFF21020E))
 #define RS232_DivisorLatchLSB (*(volatile unsigned char *)(0xFF210200))
 #define RS232_DivisorLatchMSB (*(volatile unsigned char *)(0xFF210202))
+#define TRUE 1
+#define FALSE 0
 /**************************************************************************
 /* Subroutine to initialise the RS232 Port by writing some data
 ** to the internal registers.
@@ -18,26 +20,48 @@
 **
 ** Refer to UART data sheet for details of registers and programming
 ***************************************************************************/
+
+#include <stdio.h>
+
+void Init_RS232(void);
+int putcharRS232(int c);
+int getcharRS232( void );
+int RS232TestForReceivedData(void);
+void RS232Flush(void);
+int main()
+{
+	// initialize the serial port;
+	Init_RS232();
+	void RS232Flush();
+	int ch_send= 8;
+	putcharRS232(8);
+	putcharRS232(89);
+
+	if(getcharRS232() == ch_send)
+		printf("success");
+	if(getcharRS232() == 89)
+		printf("success2");
+
+}
 void Init_RS232(void)
 {
 
-
- // Reset the Fifo’s in the FiFo Control Reg by setting bits 1 & 2
-
-
+// set bit 7 of Line Control Register to 1, to gain access to the baud rate registers
 unsigned char line_control_register;
 line_control_register= RS232_LineControlReg;
-line_control_register = line_control_register ||  0x80;
+line_control_register = line_control_register |  0x80;
 RS232_LineControlReg= line_control_register;
  // set Divisor latch (LSB and MSB) with correct value for required baud rate
- RS232_DivisorLatchLSB =0x01;
+// example 0x0145
+ RS232_DivisorLatchLSB =0x45;
  RS232_DivisorLatchMSB =0x01;
  // set bit 7 of Line control register back to 0 and
  // program other bits in that reg for 8 bit data,
  // 1 stop bit, no parity etc
+ //0000 0011
  RS232_LineControlReg= 0x03;
  // Reset the Fifo’s in the FiFo Control Reg by setting bits 1 & 2
-RS232_FifoControlReg = RS232_FifoControlReg || 0x06;
+RS232_FifoControlReg = RS232_FifoControlReg | 0x06;
  // Now Clear all bits in the FiFo control registers
 RS232_FifoControlReg = RS232_FifoControlReg ^  0x06;
 }
@@ -56,12 +80,14 @@ return c;
 }
 int getcharRS232( void )
 {
+
   while ( (RS232_LineStatusReg & 0x01)!= 0x01){
+
  ;
   }
  // wait for Data Ready bit (0) of line status register to be '1'
  // read new character from ReceiverFiFo register
- return RS232_ReceiverFifo;
+ return (int) RS232_ReceiverFifo;
  // return new character
 }
 // the following function polls the UART to determine if any character
