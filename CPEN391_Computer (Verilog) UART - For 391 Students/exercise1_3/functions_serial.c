@@ -65,39 +65,34 @@
 #include <stdio.h>
 
 void Init_RS232(void);
+void Init_GPS(void);
 int putchar_uart (int  , volatile unsigned char *  ,  volatile unsigned char * );
 int getchar_uart( volatile unsigned char *  ,  volatile unsigned char *   );
 int TestForReceivedData(volatile unsigned char *  );
 void Flush( volatile unsigned char *   , volatile unsigned char *  );
+void Get_GPS_Data(char *latitude, char * longitude, char * time);
 
 int main()
 {
 	// initialize the serial port;
-	// needs to be done according to the chip
-	Init_RS232();
-	int i;
-	int u;
-	// to use just change the RS232 PART, same idea for put char and get char for the arguments
-	Flush(RS232_LineStatusReg, RS232_ReceiverFifo);
-
-	int ch_send= 8;
-	putchar_uart(8, RS232_LineStatusReg ,  RS232_TransmitterFifo );
-	// just to wait 
-	for(i=0; i<1000; i++){
-		u++;
-	}
-	if(TestForReceivedData(RS232_LineStatusReg) == TRUE)
-		printf("sucess sending ");
 
 
-	if(getchar_uart(RS232_LineStatusReg, RS232_ReceiverFifo) == ch_send)
-		printf("success total");
+	Init_GPS();
+	Flush(GPS_LineStatusReg, GPS_ReceiverFifo);
+	char lon[15];
+	char lat[15];
+	char time[15];
+	Get_GPS_Data(lat, lon, time);
+	printf("\nlatitude: %s\n", lat);
+	printf("longitude: %s\n", lon);
+	printf("time: %s\n", time);
+
+
 
 }
 
 void Init_RS232(void)
 {
-
 // set bit 7 of Line Control Register to 1, to gain access to the baud rate registers
 unsigned char line_control_register;
 line_control_register= *RS232_LineControlReg;
@@ -116,6 +111,127 @@ line_control_register = line_control_register |  0x80;
 *RS232_FifoControlReg = *RS232_FifoControlReg | 0x06;
  // Now Clear all bits in the FiFo control registers
 *RS232_FifoControlReg = *RS232_FifoControlReg ^  0x06;
+}
+
+void Init_GPS(void){
+	unsigned char line_control_register = *GPS_LineControlReg;
+	//set bit 7 to 1 to gain access to baud rate
+	line_control_register = line_control_register | 0x80;
+	*GPS_LineControlReg = line_control_register;
+
+	//set baud rate to 9600 in hex = 0x0145
+	*GPS_DivisorLatchLSB = 0x45;
+	*GPS_DivisorLatchMSB = 0x1;
+
+	//set bit 7 of line control back to 0 and set other bits for 8 bit data (pls be right christian)
+	*GPS_LineControlReg = 0x03;
+
+	//reset Fifo in fifo control
+	*GPS_FifoControlReg = *GPS_FifoControlReg | 0x06;
+	//clear all bits in the fifo control register
+	*GPS_FifoControlReg = 0x00;
+}
+
+//returns gps data as pointers
+//only use after INIT_GPS
+void Get_GPS_Data(char *latitude, char * longitude, char * time){
+	//make an arry that is too big just incase
+	char string[70];
+	//spin until the start of the correct gps string
+	int correct_field = 0;
+	int dolla$ = 0;
+	int position = 0;
+	int commas = 0;
+
+//	while(commas< 6)
+//	{
+//		char data = (char)getchar_uart(GPS_LineStatusReg, GPS_ReceiverFifo);
+//		if(data == '$'){
+//			//string[position] = data;
+//			dolla$ = 1;
+//			//position++;
+//		}
+//		if(dolla$){
+//			if(data == ',')
+//				commas++;
+//			string[position] = data;
+//			position++;
+//		}
+//	}
+//	printf("String: %s\n", string);
+	//make sure its $GPGGA
+	while(!correct_field){
+		char data = (char)getchar_uart(GPS_LineStatusReg, GPS_ReceiverFifo);
+		//see if it is the start of the gps string
+		//printf("%d\n", data);
+		if(data == '$'){
+			string[position] = data;
+			dolla$ = 1;
+			position++;
+		}
+		//populate field and check to see if gpgga
+		if(dolla$){
+			string[position] = data;
+			//finish reading the fied and see if it is right
+			if(position == 5){
+				if(string[4] == 'G'){
+					correct_field = 1;
+				}
+				else{
+					dolla$ = 0;
+					position = -1;
+				}
+			}
+			position++;
+		}
+	}
+	//now have gpgga field
+	//6 commas gives up until longitude quadrant
+	while(commas < 6){
+		char data = (char)getchar_uart(GPS_LineStatusReg, GPS_ReceiverFifo);
+		string[position] = data;
+		if(data == ',')
+			commas++;
+		position++;
+	}
+	//now string contains all nescisarry data in gpgga format
+	position = 0;
+	commas = 0;
+	int lon = 0;
+	int lat = 0;
+	int t = 0;
+	for(position = 0; commas < 6; position ++){
+		//parse time data
+		printf("%c", string[position]);
+		if(string[position] == ',')
+			commas++;
+		else{
+			if(commas == 1){
+				time[t] = string[position];
+				t++;
+			}
+			else if(commas == 2){
+				latitude[lat] = string[position];
+				lat++;
+			}
+			else if(commas == 3){
+				latitude[lat] = string[position];
+			}
+			else if(commas == 4){
+				longitude[lon] = string[position];
+				lon++;
+			}
+			else if(commas == 5){
+				longitude[lon] = string[position];
+			}
+		}
+
+	}
+
+
+
+
+
 }
 
 
