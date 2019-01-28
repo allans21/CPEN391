@@ -1,0 +1,5 @@
+requests==2.21.0
+uuid==1.30
+Flask==1.0.2
+Pillow==5.4.1
+numpy==1.16.0
