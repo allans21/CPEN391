@@ -1,3 +1,6 @@
+/// /////
+////
+////
 //The host should be configured for 9600 BAUD, 8 data bits and 1 Stop bit.
 #include <stdio.h>
 #include <math.h>
@@ -22,6 +25,7 @@ int ScreenTouched( void );
 int putchar_uart (int  , volatile unsigned char *  ,  volatile unsigned char * );
 int getchar_uart( volatile unsigned char *  ,  volatile unsigned char *   );
 int TestForReceivedData(volatile unsigned char *  );
+void Flush( volatile unsigned char *  LineStatusReg , volatile unsigned char *  ReceiverFifo);
 void Init_Touch(void);
 void WaitForReleased(void);
 int ScreenTouched( void );
@@ -34,7 +38,23 @@ void WaitForReleased(void);
 ** Initialise touch screen controller
 *****************************************************************************/
 void main () {
-    printf("hello world");
+    Init_Touch();
+    Point touch;
+    while(1) {
+
+      WaitForTouch();
+      WaitForReleased();
+      touch=  GetRelease();
+      printf("sucess\n");
+      printf("x axis: %d", touch.x);
+      printf("y axis: %d", touch.y);
+      printf("\n");
+      Flush( TouchScreen_LineStatusReg , TouchScreen_ReceiverFifo);
+
+
+
+
+    }
 
 }
 void Init_Touch(void)
@@ -112,10 +132,10 @@ Point GetPress(void)
  char x2 = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
  char y1 = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
  char y2 =  getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
- float x = x1+x2<<7;
- x = x * 320/4096;
- float y = y1+y2<<7;
- y = y * 240/4096;
+ float x = x1|(x2<<7);
+ x = x * 800/4096;
+ float y = y1|(y2<<7);
+ y = y * 480/4096;
  p1.x=x;
  p1.y=y;
  return p1;
@@ -133,10 +153,10 @@ Point GetRelease(void)
  char x2 = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
  char y1 = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
  char y2 =  getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
- float x = x1+x2<<7;
- x = x * 320/4096;
- float y = y1+y2<<7;
- y = y * 240/4096;
+ float x = x1|(x2<<7);
+ x = x * 800/4096;
+ float y = y1| ( y2<<7 );
+ y = y * 480/4096;
   p1.x=x;
  p1.y=y;
  return p1;
@@ -182,4 +202,19 @@ int TestForReceivedData(volatile unsigned char *  LineStatusReg)
  else
  return FALSE;
  //return TRUE, otherwise return FALSE
+}
+//
+// Remove/flush the UART receiver buffer by removing any unread characters
+//
+void Flush( volatile unsigned char *  LineStatusReg , volatile unsigned char *  ReceiverFifo)
+{
+
+ // while bit 0 of Line Status Register == ‘1’
+ // read unwanted char out of fifo receiver buffer
+ // return; // no more characters so return
+ int garbage;
+while ( (*LineStatusReg & 0x01)== 0x01){
+  garbage=  * ReceiverFifo;
+}
+
 }

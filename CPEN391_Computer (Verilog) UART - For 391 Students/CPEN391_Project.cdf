@@ -6,7 +6,7 @@ JedecChain;
 	P ActionCode(Ign)
 		Device PartName(SOCVHPS) MfrSpec(OpMask(0));
 	P ActionCode(Cfg)
-		Device PartName(5CSEMA5F31) Path("C:/Users/paul/Desktop/CPEN391_Computer (Verilog) UART - For 391 Students/") File("CPEN391_Project.sof") MfrSpec(OpMask(1));
+		Device PartName(5CSEMA5F31) Path("C:/Users/criss/OneDrive/Documents/New folder (2)/CPEN391/CPEN391_Computer (Verilog) UART - For 391 Students/") File("CPEN391_Project.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

@@ -38,9 +38,8 @@ module  GraphicsController_Verilog (
 	);
 	
 		// WIRES/REGs etc
-
-
-	reg signed [15:0] X1, Y1, X2, Y2, Colour, BackGroundColour, Command;			// registers
+	reg incX, incY; 
+	reg signed [15:0] X1, Y1, X2, Y2, Colour, BackGroundColour, Command, temp, NextX;			// registers
 	reg signed [15:0] Colour_Latch;									// holds data read from a pixel
 
 	// signals to control/select the registers above
@@ -208,6 +207,8 @@ module  GraphicsController_Verilog (
 					X1[15:8] <= DataInFromCPU[15:8];		
 				if(LDS_L == 0) 
 					X1[7:0] <= DataInFromCPU[7:0];
+			end else if(incX) begin
+				X1 = X1 + 1;
 			end
 		end
 	end
@@ -225,6 +226,8 @@ module  GraphicsController_Verilog (
 					Y1[15:8] <= DataInFromCPU[15:8];	
 				if(LDS_L == 0) 
 					Y1[7:0] <= DataInFromCPU[7:0];
+			end else if(incY) begin
+				Y1 = Y1 + 1;
 			end
 		end
 	end
@@ -333,7 +336,7 @@ module  GraphicsController_Verilog (
 	always@(posedge Clk) begin
 		if(Reset_L == 0)
 			CurrentState <= Idle; 
-		else begin
+		else begin 
 			CurrentState <= NextState;
 
 // Make outputs to the Frame Buffer Memory (Sram) synchronous
@@ -521,14 +524,89 @@ module  GraphicsController_Verilog (
 		else if(CurrentState == DrawHLine) begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// TODO in your project
-			NextState <= Idle;
+			if(X1 === X2)	
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;								// else write to lower half of Sram data bus
+
+					NextState <= Idle;
+					incX = 1'b0;
+			end
+
+			if(X1 > X2)
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;	
+					NextState	<= CurrentState;							// else write to lower half of Sram data bus
+			end
+
+			if(X1 < X2)
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;								// else write to lower half of Sram data bus
+
+					incX = 1'b1;
+					NextState	<= CurrentState;
+			end
 		end
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		else if(CurrentState == DrawVline) begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-			// TODO in your project
-			NextState <= Idle;
+			if(Y1 === Y2)	
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;								// else write to lower half of Sram data bus
+
+					NextState <= Idle;
+					incY = 1'b0;
+			end
+
+			if(Y1 > Y2)
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;	
+					NextState	<= CurrentState;							// else write to lower half of Sram data bus
+			end
+
+			if(Y1 < Y2)
+			begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;								// else write to lower half of Sram data bus
+
+					incY = 1'b1;
+					NextState	<= CurrentState;
+			end
 		end
 			
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
