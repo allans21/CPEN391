@@ -66,26 +66,37 @@
 
 void Init_RS232(void);
 void Init_GPS(void);
+void Init_Motors(void);
 int putchar_uart (int  , volatile unsigned char *  ,  volatile unsigned char * );
 int getchar_uart( volatile unsigned char *  ,  volatile unsigned char *   );
 int TestForReceivedData(volatile unsigned char *  );
 void Flush( volatile unsigned char *   , volatile unsigned char *  );
 void Get_GPS_Data(char *latitude, char * longitude, char * time);
+void Run_Motors(int);
 
 int main()
 {
 	// initialize the serial port;
 
 
-	Init_GPS();
-	Flush(GPS_LineStatusReg, GPS_ReceiverFifo);
-	char lon[15];
-	char lat[15];
-	char time[15];
-	Get_GPS_Data(lat, lon, time);
-	printf("\nlatitude: %s\n", lat);
-	printf("longitude: %s\n", lon);
-	printf("time: %s\n", time);
+//	Init_GPS();
+//	Flush(GPS_LineStatusReg, GPS_ReceiverFifo);
+//	char lon[15];
+//	char lat[15];
+//	char time[15];
+//	while(1){
+//	Get_GPS_Data(lat, lon, time);
+//	printf("\nlatitude: %s\n", lat);
+//	printf("longitude: %s\n", lon);
+//	printf("time: %s\n", time);
+//	}
+
+	Init_Motors();
+	Flush(Bluetooth_LineStatusReg, Bluetooth_ReceiverFifo); //tbh probably unessicry
+	while(1){
+		Run_Motors(1);
+		Run_Motors(2);
+	}
 
 
 
@@ -113,6 +124,31 @@ line_control_register = line_control_register |  0x80;
 *RS232_FifoControlReg = *RS232_FifoControlReg ^  0x06;
 }
 
+void Init_Motors(void){
+	//hijacking the Buetooth serial because we are not using that for now
+	unsigned char line_control_register = *Bluetooth_LineControlReg;
+	line_control_register = line_control_register | 0x80;
+	*Bluetooth_LineControlReg = line_control_register;
+
+	*Bluetooth_DivisorLatchLSB = 0x45;
+	*Bluetooth_DivisorLatchMSB = 0x1;
+
+	*Bluetooth_LineControlReg = 0x03;
+
+	*Bluetooth_FifoControlReg = *Bluetooth_FifoControlReg | 0x06;
+	*Bluetooth_FifoControlReg = 0x00;
+
+}
+void Run_Motors(int motor){
+	if(motor == 1)
+		putchar_uart(97,  Bluetooth_LineStatusReg ,  Bluetooth_TransmitterFifo);
+	else if(motor == 2)
+		putchar_uart(98,  Bluetooth_LineStatusReg ,  Bluetooth_TransmitterFifo);
+
+
+
+
+}
 void Init_GPS(void){
 	unsigned char line_control_register = *GPS_LineControlReg;
 	//set bit 7 to 1 to gain access to baud rate
