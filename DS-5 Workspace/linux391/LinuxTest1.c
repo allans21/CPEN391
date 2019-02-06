@@ -11,77 +11,44 @@
 #include <pthread.h>
 #include <time.h>
 
-static const unsigned char base64_table[65] =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char basis_64[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-/**
- * Code taken from:
- * http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c
- *
- * base64_encode - Base64 encode
- * @src: Data to be encoded
- * @len: Length of the data to be encoded
- * @out_len: Pointer to output length variable, or %NULL if not used
- * Returns: Allocated buffer of out_len bytes of encoded data,
- * or %NULL on failure
- *
- * Caller is responsible for freeing the returned buffer. Returned buffer is
- * nul terminated to make it easier to use as a C string. The nul terminator is
- * not included in out_len.
- */
-static char * base64_encode(char *src, unsigned int len, unsigned int *out_len) {
-	unsigned char *out, *pos;
-	const unsigned char *end, *in;
-	size_t olen;
-	//int line_len;
+int Base64encode_len(int len)
+{
+    return ((len + 2) / 3 * 4) + 1;
+}
 
-	olen = len * 4 / 3 + 4; /* 3-byte blocks to 4-byte */
-	olen += olen / 72; /* line feeds */
-	olen++; /* nul termination */
-	if (olen < len)
-		return NULL; /* integer overflow */
-	out = malloc(olen);
-	if (out == NULL)
-		return NULL;
+int Base64encode(char *encoded, const char *string, int len)
+{
+    int i;
+    char *p;
 
-	end = src + len;
-	in = src;
-	pos = out;
-//	line_len = 0;
-	while (end - in >= 3) {
-		*pos++ = base64_table[in[0] >> 2];
-		*pos++ = base64_table[((in[0] & 0x03) << 4) | (in[1] >> 4)];
-		*pos++ = base64_table[((in[1] & 0x0f) << 2) | (in[2] >> 6)];
-		*pos++ = base64_table[in[2] & 0x3f];
-		in += 3;
-//		line_len += 4;
-//		if (line_len >= 72) {
-//			*pos++ = '\n';
-//			line_len = 0;
-//		}
-	}
+    p = encoded;
+    for (i = 0; i < len - 2; i += 3) {
+    *p++ = basis_64[(string[i] >> 2) & 0x3F];
+    *p++ = basis_64[((string[i] & 0x3) << 4) |
+                    ((int) (string[i + 1] & 0xF0) >> 4)];
+    *p++ = basis_64[((string[i + 1] & 0xF) << 2) |
+                    ((int) (string[i + 2] & 0xC0) >> 6)];
+    *p++ = basis_64[string[i + 2] & 0x3F];
+    }
+    if (i < len) {
+    *p++ = basis_64[(string[i] >> 2) & 0x3F];
+    if (i == (len - 1)) {
+        *p++ = basis_64[((string[i] & 0x3) << 4)];
+        *p++ = '=';
+    }
+    else {
+        *p++ = basis_64[((string[i] & 0x3) << 4) |
+                        ((int) (string[i + 1] & 0xF0) >> 4)];
+        *p++ = basis_64[((string[i + 1] & 0xF) << 2)];
+    }
+    *p++ = '=';
+    }
 
-	if (end - in) {
-		*pos++ = base64_table[in[0] >> 2];
-		if (end - in == 1) {
-			*pos++ = base64_table[(in[0] & 0x03) << 4];
-			*pos++ = '=';
-		} else {
-			*pos++ = base64_table[((in[0] & 0x03) << 4) |
-					      (in[1] >> 4)];
-			*pos++ = base64_table[(in[1] & 0x0f) << 2];
-		}
-		*pos++ = '=';
-		//line_len += 4;
-	}
-
-//	if (line_len)
-//		*pos++ = '\n';
-
-	*pos = '\0';
-	if (out_len)
-		*out_len = pos - out;
-	return out;
+    *p++ = '\0';
+    return p - encoded;
 }
 
 
@@ -112,32 +79,34 @@ void upload_img(FILE *openFile, SerialConf *wifi_conf) {
 	fseek(openFile, 0, SEEK_END);
 	long fsize = ftell(openFile);
 	fseek(openFile, 0, SEEK_SET);
-	fgets(read, BUFSIZE, openFile);
+	fread(read, 1, fsize, openFile);
 
-	size_t b64_len = NULL;
-	char *b64_encoded = base64_encode(read, fsize, &b64_len);
+	char b64_encoded[BUFSIZE];
+	int b64_len = Base64encode(b64_encoded, read, fsize);
+
+	printf("%s\n", b64_encoded);
 
 	printf("og len %d b64 len %d\n", fsize, b64_len);
-	//printf("\n\n%s\n\n\n", write);
 
-	exec_lua(wifi_conf, "s = \"\"", read);
-	const size_t XBUFLEN = 512;
+	const size_t XBUFLEN = 128;
 	char exec_buf[XBUFLEN*2];
 	char b64_buf[XBUFLEN];
 	unsigned int j = 0;
+	unsigned int chunk_num = 0;
 	while (j < b64_len) {
-		printf("j=%d\n", j);
 		memcpy(b64_buf, b64_encoded+j, b64_len-j < XBUFLEN-1 ? b64_len-j : XBUFLEN-1);
 		b64_buf[XBUFLEN-1] = '\0';
-		int len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, \"%s\")", img_id, b64_buf);
+		int len = sprintf(exec_buf, "s=\"%s\" ", b64_buf);
 		exec_lua(wifi_conf, exec_buf, read);
-		printf("\n%s\n", read);
+		len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, %d, s)", img_id, chunk_num);
+		exec_lua(wifi_conf, exec_buf, read);
+		wait_for(wifi_conf, "200 OK");
 		j += XBUFLEN - 1;
+		chunk_num += 1;
 	}
 
-	sprintf(exec_buf, "upload_img(\"aidanrosswood.ca\", 4000, %d)", img_id);
+	sprintf(exec_buf, "upload_img(\"aidanrosswood.ca\", 4000, %d) ", img_id);
 	exec_lua(wifi_conf, exec_buf, read);
-	printf("%s\n", read);
 }
 
 int main(void)

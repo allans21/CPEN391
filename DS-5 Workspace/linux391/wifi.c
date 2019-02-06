@@ -102,30 +102,39 @@ SerialConf* Init_WiFi(void *virtual_base)
 //}
 
 int exec_lua(SerialConf *sc, char * str, char * res) {
-	int i;
 	int bytes_received = 0;
 //	printf("executing %s as a Lua command\n", str);
 	while (*str) {
 		putchar_uart(*str, sc->LineStatusReg, sc->TransmitterFifo);
-		for (i=0; i < 10000; i++){}
-		while(TestForReceivedData(sc->LineStatusReg) == 1) {
-			char c = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-            printf("%c", c);
-		}
+
+//		while(TestForReceivedData(sc->LineStatusReg) == 1) {
+//			res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
+//		}
 		str += 1;
 	}
 	putchar_uart('\n', sc->LineStatusReg , sc->TransmitterFifo);
 //	while(TestForReceivedData(sc->LineStatusReg) == 1) {
-//		char c = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-//		printf("%c", c);
+//		res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
 //	}
-    for(i = 0; i < 200000; i++) {
-        if(TestForReceivedData(sc->LineStatusReg) == 1) {
-        	res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-            i = 0 ; // reset timer if we got something back
-        }
-    }
-	printf("Got %u bytes\n", bytes_received);
+//	while(TestForReceivedData(sc->LineStatusReg) == 1) {
+//		res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
+//	}
+//	printf("Got %u bytes\n", bytes_received);
 	res[bytes_received] = '\0';
 	return bytes_received;
 }
+
+void wait_for(SerialConf *sc, char *to_wait) {
+	int i = 0;
+	while (to_wait[i]) {
+		if (TestForReceivedData(sc->LineStatusReg) == 1) {
+			char c = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
+			if (to_wait[i] == c) {
+				i++;
+			} else {
+				i = 0;
+			}
+		}
+	}
+}
+

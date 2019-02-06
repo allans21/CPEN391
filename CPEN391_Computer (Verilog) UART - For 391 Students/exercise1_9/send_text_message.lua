@@ -127,9 +127,10 @@ tmr.alarm(1, duration, 1, function ()
     gpio.write(pin, status)
 end)
 
-function upload_chunk(host, port, img_id, chunk)
+function upload_chunk(host, port, img_id, chunk_num, chunk)
     data = {
         img_id = img_id,
+        chunk_num = chunk_num,
         chunk = chunk
     }
 
