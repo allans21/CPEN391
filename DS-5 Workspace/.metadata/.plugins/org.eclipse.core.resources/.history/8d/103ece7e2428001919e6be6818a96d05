@@ -1,0 +1,6 @@
+ifndef B64_H_
+#define B64_H_
+
+void f123(); // function declaration
+
+#endif

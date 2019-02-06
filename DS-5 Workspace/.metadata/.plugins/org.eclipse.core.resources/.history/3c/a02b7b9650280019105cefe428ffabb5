@@ -1,0 +1,54 @@
+#ifndef _WIFI_H_
+#define _WIFI_H_
+
+typedef struct {
+	volatile unsigned char * ReceiverFifo;
+	volatile unsigned char * TransmitterFifo;
+	volatile unsigned char * InterruptEnableReg;
+	volatile unsigned char * InterruptIdentificationReg;
+	volatile unsigned char * FifoControlReg;
+	volatile unsigned char * LineControlReg;
+	volatile unsigned char * ModemControlReg;
+	volatile unsigned char * LineStatusReg;
+	volatile unsigned char * ModemStatusReg;
+	volatile unsigned char * ScratchReg;
+	volatile unsigned char * DivisorLatchLSB;
+	volatile unsigned char * DivisorLatchMSB;
+} SerialConf;
+
+SerialConf *create_serial_conf(
+		void * virtual_base,
+		void * mask,
+		volatile unsigned char * ReceiverFifo,
+		volatile unsigned char * TransmitterFifo,
+		volatile unsigned char * InterruptEnableReg,
+		volatile unsigned char * InterruptIdentificationReg,
+		volatile unsigned char * FifoControlReg,
+		volatile unsigned char * LineControlReg,
+		volatile unsigned char * ModemControlReg,
+		volatile unsigned char * LineStatusReg,
+		volatile unsigned char * ModemStatusReg,
+		volatile unsigned char * ScratchReg,
+		volatile unsigned char * DivisorLatchLSB,
+		volatile unsigned char * DivisorLatchMSB){
+	SerialConf * sc = malloc(sizeof(SerialConf));
+	sc.ReceiverFifo = ReceiverFifo;
+	sc.TransmitterFifo = TransmitterFifo;
+	sc.InterruptEnableReg = InterruptEnableReg;
+	sc.InterruptIdentificationReg = InterruptIdentificationReg;
+	sc.FifoControlReg = FifoControlReg;
+	sc.LineControlReg = LineControlReg;
+	sc.ModemControlReg = ModemControlReg;
+	sc.LineStatusReg = LineStatusReg;
+	sc.ModemStatusReg = ModemStatusReg;
+	sc.ScratchReg = ScratchReg;
+	sc.DivisorLatchLSB = DivisorLatchLSB;
+	sc.DivisorLatchMSB = DivisorLatchMSB;
+	return sc;
+}
+
+int exec_lua(char*, char*);
+SerialConf *Init_WiFi(void*);
+
+
+#endif

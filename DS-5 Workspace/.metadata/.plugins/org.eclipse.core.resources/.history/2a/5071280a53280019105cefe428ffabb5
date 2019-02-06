@@ -1,0 +1,53 @@
+#ifndef _WIFI_H_
+#define _WIFI_H_
+
+typedef struct {
+	volatile unsigned char * ReceiverFifo;
+	volatile unsigned char * TransmitterFifo;
+	volatile unsigned char * InterruptEnableReg;
+	volatile unsigned char * InterruptIdentificationReg;
+	volatile unsigned char * FifoControlReg;
+	volatile unsigned char * LineControlReg;
+	volatile unsigned char * ModemControlReg;
+	volatile unsigned char * LineStatusReg;
+	volatile unsigned char * ModemStatusReg;
+	volatile unsigned char * ScratchReg;
+	volatile unsigned char * DivisorLatchLSB;
+	volatile unsigned char * DivisorLatchMSB;
+} SerialConf;
+
+SerialConf *create_serial_conf(
+		void * virtual_base,
+		void * ReceiverFifo,
+		void * TransmitterFifo,
+		void * InterruptEnableReg,
+		void * InterruptIdentificationReg,
+		void * FifoControlReg,
+		void * LineControlReg,
+		void * ModemControlReg,
+		void * LineStatusReg,
+		void * ModemStatusReg,
+		void * ScratchReg,
+		void * DivisorLatchLSB,
+		void * DivisorLatchMSB){
+	SerialConf * sc = malloc(sizeof(SerialConf));
+	sc->ReceiverFifo               = virtual_base + (unsigned int)(ReceiverFifo - 0xFF200000);
+	sc->TransmitterFifo            = virtual_base + (unsigned int)(TransmitterFifo - 0xFF200000);
+	sc->InterruptEnableReg         = virtual_base + (unsigned int)(InterruptEnableReg - 0xFF200000);
+	sc->InterruptIdentificationReg = virtual_base + (unsigned int)(InterruptIdentificationReg - 0xFF200000);
+	sc->FifoControlReg             = virtual_base + (unsigned int)(FifoControlReg - 0xFF200000);
+	sc->LineControlReg             = virtual_base + (unsigned int)(LineControlReg - 0xFF200000);
+	sc->ModemControlReg            = virtual_base + (unsigned int)(ModemControlReg - 0xFF200000);
+	sc->LineStatusReg              = virtual_base + (unsigned int)(LineStatusReg - 0xFF200000);
+	sc->ModemStatusReg             = virtual_base + (unsigned int)(ModemStatusReg - 0xFF200000);
+	sc->ScratchReg                 = virtual_base + (unsigned int)(ScratchReg - 0xFF200000);
+	sc->DivisorLatchLSB            = virtual_base + (unsigned int)(DivisorLatchLSB - 0xFF200000);
+	sc->DivisorLatchMSB            = virtual_base + (unsigned int)(DivisorLatchMSB - 0xFF200000);
+	return sc;
+}
+
+int exec_lua(char*, char*);
+SerialConf *Init_WiFi(void*);
+
+
+#endif

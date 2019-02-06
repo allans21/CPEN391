@@ -1,0 +1,108 @@
+17:25:07 **** Incremental Build of configuration Debug for project linux391 ****
+make all 
+Building file: ../LinuxTest1.c
+Invoking: GCC C Compiler 4 [arm-linux-gnueabihf]
+arm-linux-gnueabihf-gcc -std=c99 -Dsoc_cv_av -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include" -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include\soc_cv_av" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"LinuxTest1.d" -MT"LinuxTest1.d" -o "LinuxTest1.o" "../LinuxTest1.c"
+../LinuxTest1.c: In function 'base64_encode':
+../LinuxTest1.c:43:2: warning: implicit declaration of function 'malloc' [-Wimplicit-function-declaration]
+  out = malloc(olen);
+  ^
+../LinuxTest1.c:43:8: warning: incompatible implicit declaration of built-in function 'malloc' [enabled by default]
+  out = malloc(olen);
+        ^
+../LinuxTest1.c:47:6: warning: pointer targets in assignment differ in signedness [-Wpointer-sign]
+  end = src + len;
+      ^
+../LinuxTest1.c:48:5: warning: pointer targets in assignment differ in signedness [-Wpointer-sign]
+  in = src;
+     ^
+../LinuxTest1.c:84:2: warning: pointer targets in return differ in signedness [-Wpointer-sign]
+  return out;
+  ^
+../LinuxTest1.c: In function 'upload_img':
+../LinuxTest1.c:120:2: warning: format '%d' expects argument of type 'int', but argument 2 has type 'long int' [-Wformat=]
+  printf("og len %d b64 len %d\n", fsize, b64_len);
+  ^
+../LinuxTest1.c:130:3: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+   memcpy(b64_buf, b64_encoded+j, b64_len-j < XBUFLEN-1 ? b64_len-j : XBUFLEN-1);
+   ^
+../LinuxTest1.c:130:3: warning: incompatible implicit declaration of built-in function 'memcpy' [enabled by default]
+../LinuxTest1.c:132:3: warning: format '%d' expects argument of type 'int', but argument 3 has type 'time_t' [-Wformat=]
+   int len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, \"%s\")", img_id, b64_buf);
+   ^
+../LinuxTest1.c:132:7: warning: unused variable 'len' [-Wunused-variable]
+   int len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, \"%s\")", img_id, b64_buf);
+       ^
+../LinuxTest1.c:138:2: warning: format '%d' expects argument of type 'int', but argument 3 has type 'time_t' [-Wformat=]
+  sprintf(exec_buf, "upload_img(\"aidanrosswood.ca\", 4000, %d)", img_id);
+  ^
+../LinuxTest1.c:110:7: warning: unused variable 'write' [-Wunused-variable]
+  char write[BUFSIZE];
+       ^
+../LinuxTest1.c: In function 'main':
+../LinuxTest1.c:176:2: warning: passing argument 3 of 'pthread_create' from incompatible pointer type [enabled by default]
+  pthread_create(&thread1,NULL, update,Red_Leds);
+  ^
+In file included from ../LinuxTest1.c:11:0:
+c:\altera\15.0\embedded\ds-5\sw\gcc\arm-linux-gnueabihf\libc\usr\include\pthread.h:244:12: note: expected 'void * (*)(void *)' but argument is of type 'void * (*)(unsigned int *)'
+ extern int pthread_create (pthread_t *__restrict __newthread,
+            ^
+../LinuxTest1.c:177:2: warning: passing argument 3 of 'pthread_create' from incompatible pointer type [enabled by default]
+  pthread_create(&thread2,NULL, update,HEX1);
+  ^
+In file included from ../LinuxTest1.c:11:0:
+c:\altera\15.0\embedded\ds-5\sw\gcc\arm-linux-gnueabihf\libc\usr\include\pthread.h:244:12: note: expected 'void * (*)(void *)' but argument is of type 'void * (*)(unsigned int *)'
+ extern int pthread_create (pthread_t *__restrict __newthread,
+            ^
+../LinuxTest1.c:178:2: warning: passing argument 3 of 'pthread_create' from incompatible pointer type [enabled by default]
+  pthread_create(&thread3,NULL, update,HEX2);
+  ^
+In file included from ../LinuxTest1.c:11:0:
+c:\altera\15.0\embedded\ds-5\sw\gcc\arm-linux-gnueabihf\libc\usr\include\pthread.h:244:12: note: expected 'void * (*)(void *)' but argument is of type 'void * (*)(unsigned int *)'
+ extern int pthread_create (pthread_t *__restrict __newthread,
+            ^
+../LinuxTest1.c:179:2: warning: passing argument 3 of 'pthread_create' from incompatible pointer type [enabled by default]
+  pthread_create(&thread4,NULL, update,HEX3);
+  ^
+In file included from ../LinuxTest1.c:11:0:
+c:\altera\15.0\embedded\ds-5\sw\gcc\arm-linux-gnueabihf\libc\usr\include\pthread.h:244:12: note: expected 'void * (*)(void *)' but argument is of type 'void * (*)(unsigned int *)'
+ extern int pthread_create (pthread_t *__restrict __newthread,
+            ^
+../LinuxTest1.c: In function 'update':
+../LinuxTest1.c:102:1: warning: control reaches end of non-void function [-Wreturn-type]
+ }
+ ^
+Finished building: ../LinuxTest1.c
+ 
+Building file: ../serial.c
+Invoking: GCC C Compiler 4 [arm-linux-gnueabihf]
+arm-linux-gnueabihf-gcc -std=c99 -Dsoc_cv_av -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include" -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include\soc_cv_av" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"serial.d" -MT"serial.d" -o "serial.o" "../serial.c"
+../serial.c: In function 'create_serial_conf':
+../serial.c:20:2: warning: implicit declaration of function 'malloc' [-Wimplicit-function-declaration]
+  SerialConf * sc = malloc(sizeof(SerialConf));
+  ^
+../serial.c:20:20: warning: incompatible implicit declaration of built-in function 'malloc' [enabled by default]
+  SerialConf * sc = malloc(sizeof(SerialConf));
+                    ^
+../serial.c: In function 'Flush':
+../serial.c:83:6: warning: variable 'garbage' set but not used [-Wunused-but-set-variable]
+  int garbage;
+      ^
+Finished building: ../serial.c
+ 
+Building file: ../wifi.c
+Invoking: GCC C Compiler 4 [arm-linux-gnueabihf]
+arm-linux-gnueabihf-gcc -std=c99 -Dsoc_cv_av -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include" -I"C:\altera\15.0\embedded\ip\altera\hps\altera_hps\hwlib\include\soc_cv_av" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"wifi.d" -MT"wifi.d" -o "wifi.o" "../wifi.c"
+../wifi.c:20:1: warning: "/*" within comment [-Wcomment]
+ /* Subroutine to initialise the RS232 Port by writing some data
+ ^
+Finished building: ../wifi.c
+ 
+Building target: linux391
+Invoking: GCC C Linker 4 [arm-linux-gnueabihf]
+arm-linux-gnueabihf-gcc  -o "linux391"  ./LinuxTest1.o ./serial.o ./wifi.o   -lpthread
+Finished building target: linux391
+ 
+
+17:25:09 Build Finished (took 1s.536ms)
+

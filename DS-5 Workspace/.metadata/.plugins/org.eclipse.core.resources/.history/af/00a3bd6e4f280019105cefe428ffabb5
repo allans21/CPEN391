@@ -1,0 +1,30 @@
+#ifndef _WIFI_H_
+#define _WIFI_H_
+
+typedef struct {
+	volatile unsigned char * ReceiverFifo;
+	volatile unsigned char * TransmitterFifo;
+	volatile unsigned char * InterruptEnableReg;
+	volatile unsigned char * InterruptIdentificationReg;
+	volatile unsigned char * FifoControlReg;
+	volatile unsigned char * LineControlReg;
+	volatile unsigned char * ModemControlReg;
+	volatile unsigned char * LineStatusReg;
+	volatile unsigned char * ModemStatusReg;
+	volatile unsigned char * ScratchReg;
+	volatile unsigned char * DivisorLatchLSB;
+	volatile unsigned char * DivisorLatchMSB;
+} SerialConf;
+
+SerialConf *create_serial_conf(volatile unsigned char *,volatile unsigned char *,
+		volatile unsigned char *,volatile unsigned char *,
+		volatile unsigned char *,volatile unsigned char *,
+		volatile unsigned char *,volatile unsigned char *,
+		volatile unsigned char *,volatile unsigned char *,
+		volatile unsigned char *,volatile unsigned char *);
+
+int exec_lua(char*, char*);
+SerialConf *Init_WiFi(void*);
+
+
+#endif

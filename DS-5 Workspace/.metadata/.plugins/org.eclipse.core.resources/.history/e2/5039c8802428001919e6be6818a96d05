@@ -1,0 +1,7 @@
+#ifndef B64_H_
+#define B64_H_
+
+char * base64_encode(char *, unsigned int, unsigned int *);
+
+
+#endif

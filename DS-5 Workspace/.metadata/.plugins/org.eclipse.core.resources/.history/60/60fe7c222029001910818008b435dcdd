@@ -1,0 +1,205 @@
+/*
+ * LinuxTest1.c
+ *
+ *  Created on: Dec 13, 2016
+ *      Author: paul
+ */
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <pthread.h>
+#include <time.h>
+
+static const unsigned char base64_table[65] =
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+/**
+ * Code taken from:
+ * http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c
+ *
+ * base64_encode - Base64 encode
+ * @src: Data to be encoded
+ * @len: Length of the data to be encoded
+ * @out_len: Pointer to output length variable, or %NULL if not used
+ * Returns: Allocated buffer of out_len bytes of encoded data,
+ * or %NULL on failure
+ *
+ * Caller is responsible for freeing the returned buffer. Returned buffer is
+ * nul terminated to make it easier to use as a C string. The nul terminator is
+ * not included in out_len.
+ */
+static char * base64_encode(char *src, unsigned int len, unsigned int *out_len) {
+	unsigned char *out, *pos;
+	const unsigned char *end, *in;
+	size_t olen;
+	//int line_len;
+
+	olen = len * 4 / 3 + 4; /* 3-byte blocks to 4-byte */
+	olen += olen / 72; /* line feeds */
+	olen++; /* nul termination */
+	if (olen < len)
+		return NULL; /* integer overflow */
+	out = malloc(olen);
+	if (out == NULL)
+		return NULL;
+
+	end = src + len;
+	in = src;
+	pos = out;
+//	line_len = 0;
+	while (end - in >= 3) {
+		*pos++ = base64_table[in[0] >> 2];
+		*pos++ = base64_table[((in[0] & 0x03) << 4) | (in[1] >> 4)];
+		*pos++ = base64_table[((in[1] & 0x0f) << 2) | (in[2] >> 6)];
+		*pos++ = base64_table[in[2] & 0x3f];
+		in += 3;
+//		line_len += 4;
+//		if (line_len >= 72) {
+//			*pos++ = '\n';
+//			line_len = 0;
+//		}
+	}
+
+	if (end - in) {
+		*pos++ = base64_table[in[0] >> 2];
+		if (end - in == 1) {
+			*pos++ = base64_table[(in[0] & 0x03) << 4];
+			*pos++ = '=';
+		} else {
+			*pos++ = base64_table[((in[0] & 0x03) << 4) |
+					      (in[1] >> 4)];
+			*pos++ = base64_table[(in[1] & 0x0f) << 2];
+		}
+		*pos++ = '=';
+		//line_len += 4;
+	}
+
+//	if (line_len)
+//		*pos++ = '\n';
+
+	*pos = '\0';
+	if (out_len)
+		*out_len = pos - out;
+	return out;
+}
+
+
+#define HW_REGS_BASE ( 0xff200000 )
+#define HW_REGS_SPAN ( 0x00200000 )
+#define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
+#define RED_LEDS_OFFSET 0x20
+#define HEX1_OFFSET 0x30
+#define HEX2_OFFSET 0x40
+#define HEX3_OFFSET 0x50
+
+void *update(unsigned int * location){
+	int k;
+	for(k = 0; k <10; k++){
+		*location = *location + 1;
+		sleep(1);
+	}
+}
+
+#include "wifi.h"
+
+void upload_img(FILE *openFile, SerialConf *wifi_conf) {
+	time_t img_id = time(0);
+	const size_t BUFSIZE = 65536;
+	char read[BUFSIZE];
+	char write[BUFSIZE];
+
+	fseek(openFile, 0, SEEK_END);
+	long fsize = ftell(openFile);
+	fseek(openFile, 0, SEEK_SET);
+	fgets(read, BUFSIZE, openFile);
+
+	size_t b64_len = NULL;
+	char *b64_encoded = base64_encode(read, fsize, &b64_len);
+
+	printf("og len %d b64 len %d\n", fsize, b64_len);
+	//printf("\n\n%s\n\n\n", write);
+
+	exec_lua(wifi_conf, "s = \"\"", read);
+	const size_t XBUFLEN = 2048;
+	char exec_buf[XBUFLEN];
+	unsigned int j = 0;
+	const char * line_start = "upload_chunk(\"aidanrosswood.ca\", 4000, %d";
+	while (j < b64_len) {
+		printf("j=%d\n", j);
+		int len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, \"%s\")", img_id, );
+		exec_lua(wifi_conf, exec_buf, read);
+		printf("\n%s\n", read);
+	}
+
+	exec_lua(wifi_conf, "upload_img(\"aidanrosswood.ca\", \"/upload_img\", 4000, s)", read);
+	printf("%s\n", read);
+}
+
+int main(void)
+{
+	unsigned int *Red_Leds = NULL;
+	unsigned int *HEX1 = NULL;
+	unsigned int *HEX2 = NULL;
+	unsigned int *HEX3 = NULL;
+	void *virtual_base;
+	int fd;
+
+	// Open memory as if it were a device for read and write access
+	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
+		printf( "ERROR: could not open \"/dev/mem\"...\n" );
+		return( 1 );
+	}
+
+	// map 2Mbyte of memory starting at 0xFF200000 to user space
+	virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ),MAP_SHARED, fd, HW_REGS_BASE );
+
+	if( virtual_base == MAP_FAILED ) {
+		printf( "ERROR: mmap() failed...\n" );
+		close( fd );
+		return(1);
+	}
+
+	// Get the address that maps to the LEDs
+	Red_Leds =(unsigned int *)(virtual_base + (( RED_LEDS_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX1 =(unsigned int *)(virtual_base + (( HEX1_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX2 =(unsigned int *)(virtual_base + (( HEX2_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX3 =(unsigned int *)(virtual_base + (( HEX3_OFFSET ) & (HW_REGS_MASK ) ));
+	pthread_t thread1;
+	pthread_t thread2;
+	pthread_t thread3;
+	pthread_t thread4;
+	pthread_create(&thread1,NULL, update,Red_Leds);
+	pthread_create(&thread2,NULL, update,HEX1);
+	pthread_create(&thread3,NULL, update,HEX2);
+	pthread_create(&thread4,NULL, update,HEX3);
+
+	SerialConf * wifi_conf = Init_WiFi(virtual_base);
+
+	char read[65536];
+	FILE* openFile = fopen("/media/barcode.jpg","r");
+	upload_img(openFile, wifi_conf);
+
+	pthread_join(thread1,NULL);
+	pthread_join(thread2,NULL);
+	pthread_join(thread3,NULL);
+	pthread_join(thread4,NULL);
+
+	openFile = fopen("/home/root/word.txt","w+");
+	fputs("Hello World",openFile);
+	fclose(openFile);
+	openFile = fopen("/home/root/word.txt","r");
+	fgets(read, 20, (FILE*)openFile);
+	printf("%s\n", read );
+	fclose(openFile);
+
+
+	// when finished, unmap the virtual space and close the memory "device"
+	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
+		printf( "ERROR: munmap() failed...\n" );
+		close( fd );
+		return( 1 );
+	}
+	close( fd );
+	return 0;
+}

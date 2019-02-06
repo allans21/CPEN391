@@ -1,3 +1,6 @@
+
+
+
 module  GraphicsController_Verilog (
  
 		input unsigned [15:0] AddressIn,								// CPU 32 bit address bus
@@ -38,9 +41,8 @@ module  GraphicsController_Verilog (
 	);
 	
 		// WIRES/REGs etc
-
-
-	reg signed [15:0] X1, Y1, X2, Y2, Colour, BackGroundColour, Command;			// registers
+	reg incX, incY, decY, decX, interchange, first, decerror, incerror, errorsub0; 
+	reg signed [15:0] X1, Y1, X2, Y2, Colour, BackGroundColour, Command, NextX, NextY, Y, X, realdx, dx, realdy, dy, s1, s2, i, error;			// registers
 	reg signed [15:0] Colour_Latch;									// holds data read from a pixel
 
 	// signals to control/select the registers above
@@ -103,7 +105,9 @@ module  GraphicsController_Verilog (
 	parameter ReadPixel = 8'h06;							 	// State for reading a pixel
 	parameter ReadPixel1 = 8'h07;							 	// State for reading a pixel
 	parameter ReadPixel2 = 8'h08;							 	// State for reading a pixel
-	parameter PalletteReProgram = 8'h09;					// State for programming a pallette colour
+	parameter PalletteReProgram = 8'h09;
+	parameter DrawLineNorm = 8'h0c;
+	parameter DrawLineNorm2 = 8'h0d;
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Commands values that can be written to command register by CPU to get graphics controller to draw a shape
@@ -208,6 +212,16 @@ module  GraphicsController_Verilog (
 					X1[15:8] <= DataInFromCPU[15:8];		
 				if(LDS_L == 0) 
 					X1[7:0] <= DataInFromCPU[7:0];
+			end else if(incX === 1) begin
+				X1 = X1 + 1;
+			end else if(decX === 1) begin
+				X1 = X1 - 1;
+			end else if(interchange === 1) begin
+					if(decerror && CurrentState === DrawLineNorm2)
+						X1 <= X1 + 1;
+			end else if(interchange === 0) begin
+					if(incerror  && CurrentState === DrawLineNorm2) 
+						X1 <= X1 + 1;
 			end
 		end
 	end
@@ -225,6 +239,94 @@ module  GraphicsController_Verilog (
 					Y1[15:8] <= DataInFromCPU[15:8];	
 				if(LDS_L == 0) 
 					Y1[7:0] <= DataInFromCPU[7:0];
+			end else if(incY === 1) begin
+				Y1 <= Y1 + 1;
+			end else if(decY === 1) begin
+				Y1 <= Y1 - 1;
+			end else if(interchange === 1) begin
+				if(incerror  && CurrentState === DrawLineNorm2)
+						Y1 <= Y1 + s2;
+			end else if(interchange === 0) begin
+				if(decerror  && CurrentState === DrawLineNorm2) 
+						Y1 <= Y1 + s2;
+			end
+		end
+	end
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//line drawing setup and error checking
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	always@(posedge Clk) begin	
+		if(Reset_L == 0);			// for SIMULATION ONLY
+		else begin
+			if(interchange === 1) begin
+				if(first) begin
+					dx <= realdy;
+					dy <= realdx;
+					error <= 16'd1000 + (realdx << 1) - realdy ;    // error = (2 * dy) - dx
+					if((X2-X1) > 0)
+			   			s1 <= 1;
+			   		else if((X2-X1) === 0)
+			   			s1 <= 0;
+			   		else
+			   			s1 <= -1;
+
+				   	if((Y2-Y1) > 0)
+			   			s2 <= 1;
+			   		else if((Y2-Y1) === 0)
+			   			s2 <= 0;
+			   		else
+			   			s2 <= -1;
+					i <= 1;
+				end else begin
+					if(CurrentState === DrawLineNorm)
+						i <= i + 1;
+					if(decerror) begin
+						error <= error - (dx << 1);
+					end
+					if(incerror) begin
+						error <= error + (dy << 1);
+					end
+				end
+			end
+			else begin
+				if(first) begin
+					dx <= realdx;
+					dy <= realdy;
+					errorsub0 <= 1'b0;
+					error <= 16'd1000 + (realdy <<< 1) - realdx;    // error = (2 * dy) - dx
+
+					if(realdy > realdx)
+						interchange <= 1;
+					else
+						interchange <= 0;
+
+					if((X2-X1) > 0)
+			   			s1 <= 1;
+			   		else if((X2-X1) === 0)
+			   			s1 <= 0;
+			   		else
+			   			s1 <= -1;
+
+				   	if((Y2-Y1) > 0)
+			   			s2 <= 1;
+			   		else if((Y2-Y1) === 0)
+			   			s2 <= 0;
+			   		else
+			   			s2 <= -1;
+					i <= 1;
+				end else begin
+					if(CurrentState === DrawLineNorm)	
+						i <= i + 1;
+					if(decerror) begin
+						error <= error - (dx <<< 1);
+					end
+					if(incerror) begin
+						error <= error + (dy <<< 1);
+					end
+				end
 			end
 		end
 	end
@@ -333,7 +435,7 @@ module  GraphicsController_Verilog (
 	always@(posedge Clk) begin
 		if(Reset_L == 0)
 			CurrentState <= Idle; 
-		else begin
+		else begin 
 			CurrentState <= NextState;
 
 // Make outputs to the Frame Buffer Memory (Sram) synchronous
@@ -381,6 +483,25 @@ module  GraphicsController_Verilog (
 		Sig_ColourPalletteData			<= 0;
 		Sig_ColourPallette_WE_H			<= 0; 
 
+		incX <= 0;
+		incY <= 0;
+		decY <= 0;
+		decX <= 0;
+
+		if(X2 > X1)
+	   		realdx = X2 - X1;
+	   	else 
+	   		realdx = X1 - X2;
+
+	   	if(Y2 > Y1)
+	   		realdy = Y2 - Y1;
+	   	else
+	   		realdy = Y1 - Y2;
+
+		incerror <= 0;
+		decerror <= 0;
+
+		first <= 0;
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// IMPORTANT we have to define what the default NEXT state will be. In this case we the state machine
 		// will return to the IDLE state unless we override this with a different one
@@ -421,7 +542,7 @@ module  GraphicsController_Verilog (
 			else if(Command == Vline) 
 				NextState <= DrawVline;
 			else if(Command == ALine) 
-				NextState <= ALine;	
+				NextState <= DrawLine;	
 				
 			// add other code to process any new commands here e.g. draw a circle if you decide to implement that
 			// or draw a rectangle etc
@@ -521,24 +642,120 @@ module  GraphicsController_Verilog (
 		else if(CurrentState == DrawHLine) begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// TODO in your project
-			NextState <= Idle;
+
+			Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										// if the address/pixel is an even numbered one
+					Sig_UDS_Out_L 	<= 0;								// enable write to upper half of Sram data bus
+				else
+					Sig_LDS_Out_L 	<= 0;
+
+			if(X1 === X2)	
+			begin
+					NextState <= Idle;
+			end
+
+			if(X1 > X2)
+			begin
+
+					decX <= 1'b1;
+					NextState	<= CurrentState;	
+			end
+
+			if(X1 < X2)
+			begin	
+
+					incX <= 1'b1;
+					NextState	<= CurrentState;
+			end
 		end
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		else if(CurrentState == DrawVline) begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-			// TODO in your project
-			NextState <= Idle;
+			Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										
+					Sig_UDS_Out_L 	<= 0;								
+				else
+					Sig_LDS_Out_L 	<= 0;	
+
+
+			if(Y1 === Y2)	
+			begin
+					NextState <= Idle;
+					incY <= 1'b0;
+			end
+
+			if(Y1 > Y2)
+			begin
+					decY <= 1'b1;
+					NextState	<= CurrentState;	
+			end
+
+			if(Y1 < Y2)
+			begin
+					incY <= 1'b1;
+					NextState	<= CurrentState;
+			end
 		end
 			
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		else if(CurrentState == DrawLine) begin
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
-			// TODO in your project
-			NextState <= Idle;			
+		   	first <= 1;
+		    if(realdx === 0 && realdy === 0) begin
+		    	NextState <= Idle;
+		    
+		    end else begin
+	        	NextState <= DrawLineNorm;
+		    end
+
 		end
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		else if(CurrentState == DrawLineNorm) begin
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			first <= 0;
+		  	if(i > dx) begin
+		  		NextState <= Idle;
+		  	end
+
+		  	else begin
+				Sig_AddressOut 	<= {Y1[8:0], X1[9:1]};
+				Sig_RW_Out			<= 0;
+					
+				if(X1[0] == 1'b0)										
+					Sig_UDS_Out_L 	<= 0;								
+				else
+					Sig_LDS_Out_L 	<= 0;	
+
+				NextState <= DrawLineNorm2;
+				
+			end
+		end 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		else if(CurrentState == DrawLineNorm2) begin
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			if(error < 16'd1000) begin
+				decerror <= 0;
+				incerror <= 1;
+				NextState <= DrawLineNorm;
+			end
+			else
+			begin
+				incerror <= 0;
+				decerror <= 1;
+				NextState <= DrawLineNorm;
+			end
+		end
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
 	end
 endmodule
 
-	
-	

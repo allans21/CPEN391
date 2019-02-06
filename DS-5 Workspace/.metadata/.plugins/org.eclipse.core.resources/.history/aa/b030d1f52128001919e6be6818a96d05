@@ -1,0 +1,96 @@
+/*
+ * LinuxTest1.c
+ *
+ *  Created on: Dec 13, 2016
+ *      Author: paul
+ */
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <pthread.h>
+#include "base64.c"
+
+
+#define HW_REGS_BASE ( 0xff200000 )
+#define HW_REGS_SPAN ( 0x00200000 )
+#define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
+#define RED_LEDS_OFFSET 0x20
+#define HEX1_OFFSET 0x30
+#define HEX2_OFFSET 0x40
+#define HEX3_OFFSET 0x50
+
+void *update(unsigned int * location){
+	int k;
+	for(k = 0; k <10; k++){
+		*location = *location + 1;
+		sleep(1);
+	}
+}
+
+int main(void)
+{
+	unsigned int *Red_Leds = NULL;
+	unsigned int *HEX1 = NULL;
+	unsigned int *HEX2 = NULL;
+	unsigned int *HEX3 = NULL;
+	void *virtual_base;
+	int fd;
+
+	// Open memory as if it were a device for read and write access
+	if( ( fd = open( "/dev/mem", ( O_RDWR | O_SYNC ) ) ) == -1 ) {
+		printf( "ERROR: could not open \"/dev/mem\"...\n" );
+		return( 1 );
+	}
+
+	// map 2Mbyte of memory starting at 0xFF200000 to user space
+	virtual_base = mmap( NULL, HW_REGS_SPAN, ( PROT_READ | PROT_WRITE ),MAP_SHARED, fd, HW_REGS_BASE );
+
+	if( virtual_base == MAP_FAILED ) {
+		printf( "ERROR: mmap() failed...\n" );
+		close( fd );
+		return(1);
+	}
+
+	// Get the address that maps to the LEDs
+	Red_Leds =(unsigned int *)(virtual_base + (( RED_LEDS_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX1 =(unsigned int *)(virtual_base + (( HEX1_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX2 =(unsigned int *)(virtual_base + (( HEX2_OFFSET ) & (HW_REGS_MASK ) ));
+	HEX3 =(unsigned int *)(virtual_base + (( HEX3_OFFSET ) & (HW_REGS_MASK ) ));
+	pthread_t thread1;
+	pthread_t thread2;
+	pthread_t thread3;
+	pthread_t thread4;
+	pthread_create(&thread1,NULL, update,Red_Leds);
+	pthread_create(&thread2,NULL, update,HEX1);
+	pthread_create(&thread3,NULL, update,HEX2);
+	pthread_create(&thread4,NULL, update,HEX3);
+
+	char read[65536];
+	FILE* openFile = fopen("/media/barcode.jpg","r");
+	fgets(read, 20000, openFile);
+	printf("%s\n", read );
+
+	pthread_join(thread1,NULL);
+	pthread_join(thread2,NULL);
+	pthread_join(thread3,NULL);
+	pthread_join(thread4,NULL);
+
+	openFile = fopen("/home/root/word.txt","w+");
+	fputs("Hello World",openFile);
+	fclose(openFile);
+	openFile = fopen("/home/root/word.txt","r");
+	fgets(read, 20, (FILE*)openFile);
+	printf("%s\n", read );
+	fclose(openFile);
+
+
+	// when finished, unmap the virtual space and close the memory "device"
+	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
+		printf( "ERROR: munmap() failed...\n" );
+		close( fd );
+		return( 1 );
+	}
+	close( fd );
+	return 0;
+}
