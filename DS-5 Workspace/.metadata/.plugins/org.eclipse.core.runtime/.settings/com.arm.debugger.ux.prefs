@@ -1,5 +1,6 @@
-ConnectionManager.savedConnections=<?xml version\="1.0" encoding\="UTF-8"?>\n<connections>\n\t<connection current\="yes" mode\="debug" type\="com.arm.debugger.launcher2">CPEN391_Config</connection>\n</connections>\n
+ConnectionManager.savedConnections=<?xml version\="1.0" encoding\="UTF-8"?>\n<connections>\n\t<connection current\="no" mode\="debug" type\="com.arm.debugger.launcher2">CPEN391_Config</connection>\n\t<connection current\="yes" mode\="debug" type\="com.arm.debugger.launcher2">Linux391</connection>\n</connections>\n
 PreferredTargetHasBeenSet=true
-UXContextManager.savedContexts=<?xml version\="1.0" encoding\="UTF-8"?>\n<contexts>\n\t<context color\="32768">Connection|y3cfn2jc1\:ra4bwwe54rgl|1548827268956|workspace\:\:CPEN391_Config|CPEN391_Config</context>\n</contexts>\n
+UXContextManager.savedContexts=<?xml version\="1.0" encoding\="UTF-8"?>\n<contexts>\n\t<context color\="8388608">Connection|1g1g05iv\:n1bhl1je82ki|1549415290094|workspace\:\:Linux391|Linux391</context>\n\t<context color\="32768">Connection|1g1fbu22\:1jqseunp9glb7|1549349446366|workspace\:\:CPEN391_Config|CPEN391_Config</context>\n</contexts>\n
 com.arm.debugger.ux.scripts.favorites.new=script.file.tag\=C\:\\altera\\15.0\\embedded\\ds-5\\sw\\debugger\\configdb\\Scripts\\altera_target_check.py\nscript.verbose.tag\=false\n
+debugger.perspective.switch.preference.launch=always
 eclipse.preferences.version=1

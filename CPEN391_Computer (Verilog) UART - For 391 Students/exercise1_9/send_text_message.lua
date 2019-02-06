@@ -1,55 +1,21 @@
--- This information is used by the Wi-Fi dongle to make a wireless connection to the router in the Lab
--- or if you are using another router e.g. at home, change ID and Password appropriately
--- SSID = "SM-G925W85885"
--- SSID_PASSWORD = "svcy3492"
-
--- I understand from students who have tried, that this also works, using UBC Visitor wireless connection
--- although I haven't tried it
-
--- SSID= "ubcvisitor"
--- SSID_PASSWORD = ""
-
--- configure ESP as a station
---wifi.setmode(wifi.STATION)
---wifi.sta.config(SSID,SSID_PASSWORD)
---wifi.sta.autoconnect(1)
-
--- alternatively you could do it this way
+collectgarbage("setmemlimit", 25)
 
 wifi.setmode(wifi.STATION)
 wifi.sta.config("M112-PD","aiv4aith2Zie4Aeg", 1)
--- wifi.sta.config("TELUS5359-2.4G","kk523tfr4r", 1)
 wifi.sta.autoconnect(1)
 wifi.sta.connect()
 
 -- pause for connection to take place - adjust time delay if necessary or repeat until connection made
 tmr.delay(3000000) -- wait 1,000,000 us = 1 second
 
--- This should print 5 if connection was successful
--- print(wifi.sta.status())
-
--- Prints the IP given to ESP8266
--- print(wifi.sta.getip())
-
--- List all available wireless network ---
--- See documentation: https://nodemcu.readthedocs.io/en/master/en/modules/wifi/#wifistagetap
-
 -- The following 2 pieces of information are related to your Twilio account the one you made in Exercise 1.9
 -- change appropriately
 TWILIO_ACCOUNT_SID = "AC394c741000dd79a82cf8611df4bc642e"
 TWILIO_TOKEN =       "87a0c5ac353a10a48300c59741b2a45f"
 
--- Unfortunately, the Wi-FI dongle can only make unsecured HTTP requests, but Twilio requires 
--- secured HTTPS requests, so we will use a relay website to convert HTTP requests into HTTPS requests
--- visit http://iot-https-relay.appspot.com/ to learn more about this service
--- Please be sure to understand the security issues of using this relay app and use at your own risk.
-
 -- this is the web address of the relay web site that our dongle sends the initial HTTP request to
 HOST = "iot-https-relay.appspot.com" 
 
--- The following variable defines the TWILIO web site that we will connect to
--- use the first one if you want to send a text to a cell phone
--- use the second (commented out) one if you want to make a call to a cell phone - that's the only change
 URI = "/twilio/Messages.json"
 --URI = "/twilio/Calls.json"
 
@@ -160,3 +126,34 @@ tmr.alarm(1, duration, 1, function ()
 
     gpio.write(pin, status)
 end)
+
+function upload_chunk(host, port, img_id, chunk)
+    data = {
+        img_id = img_id,
+        chunk = chunk
+    }
+
+    socket = net.createConnection(net.TCP,0)
+    socket:on("receive",display)
+    socket:connect(port,host)
+
+    socket:on("connection",function(sck)
+        post_request = build_post_request(host, '/upload_chunk', data)
+        sck:send(post_request)
+    end)
+end
+
+function upload_img(host, port, img_id)
+    data = {
+        img_id = img_id
+    }
+
+    socket = net.createConnection(net.TCP,0)
+    socket:on("receive",display)
+    socket:connect(port,host)
+
+    socket:on("connection",function(sck)
+        post_request = build_post_request(host, '/upload_img', data)
+        sck:send(post_request)
+    end)
+end
