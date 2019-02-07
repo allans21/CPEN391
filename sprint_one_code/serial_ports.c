@@ -9,8 +9,8 @@ void BTFactoryReset(void)
   // enter these commands in upper case
   // $$$ enter command mode
   // SF,1 factory reset
-  // SN,Device1 set device name to “Device1”
-  // SP,1234 set 4 digit pin to “1234”
+  // SN,Device1 set device name to â€œDevice1â€�
+  // SP,1234 set 4 digit pin to â€œ1234â€�
   // R,1<CR> reboot BT controller
   char c, Message[100] ;
   int i;
@@ -76,7 +76,7 @@ void Init_BT(void)
   // 1 stop bit, no parity etc
   //0000 0011
   *Bluetooth_LineControlReg= 0x03;
-  // Reset the Fifo’s in the FiFo Control Reg by setting bits 1 & 2
+  // Reset the Fifoâ€™s in the FiFo Control Reg by setting bits 1 & 2
   *Bluetooth_FifoControlReg = *Bluetooth_FifoControlReg | 0x06;
   // Now Clear all bits in the FiFo control registers
   *Bluetooth_FifoControlReg = *Bluetooth_FifoControlReg ^  0x06;
@@ -240,7 +240,7 @@ Point GetRelease(void)
 void Flush( volatile unsigned char *  LineStatusReg , volatile unsigned char *  ReceiverFifo)
 {
 
- // while bit 0 of Line Status Register == ‘1’
+ // while bit 0 of Line Status Register == â€˜1â€™
  // read unwanted char out of fifo receiver buffer
  // return; // no more characters so return
  int garbage;
@@ -270,8 +270,35 @@ line_control_register = line_control_register |  0x80;
  // 1 stop bit, no parity etc
  //0000 0011
  *RS232_LineControlReg= 0x03;
- // Reset the Fifo’s in the FiFo Control Reg by setting bits 1 & 2
+ // Reset the Fifoâ€™s in the FiFo Control Reg by setting bits 1 & 2
 *RS232_FifoControlReg = *RS232_FifoControlReg | 0x06;
  // Now Clear all bits in the FiFo control registers
 *RS232_FifoControlReg = *RS232_FifoControlReg ^  0x06;
+}
+/// motors functions
+
+void Init_Motors(void){
+	//hijacking the Buetooth serial because we are not using that for now
+	unsigned char line_control_register = *Bluetooth_LineControlReg;
+	line_control_register = line_control_register | 0x80;
+	*Bluetooth_LineControlReg = line_control_register;
+
+	*Bluetooth_DivisorLatchLSB = 0x45;
+	*Bluetooth_DivisorLatchMSB = 0x1;
+
+	*Bluetooth_LineControlReg = 0x03;
+
+	*Bluetooth_FifoControlReg = *Bluetooth_FifoControlReg | 0x06;
+	*Bluetooth_FifoControlReg = 0x00;
+
+}
+void Run_Motors(int motor){
+	if(motor == 1)
+		putchar_uart(97,  Bluetooth_LineStatusReg ,  Bluetooth_TransmitterFifo);
+	else if(motor == 2)
+		putchar_uart(98,  Bluetooth_LineStatusReg ,  Bluetooth_TransmitterFifo);
+
+
+
+
 }

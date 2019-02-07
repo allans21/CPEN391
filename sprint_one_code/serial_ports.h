@@ -84,5 +84,7 @@ void WaitForReleased(void);
 void Init_RS232(void);
 void BTFactoryReset(void);
 void BTOutMessage(char ** Message);
+void Init_Motors(void);
+void Run_Motors(int );
 
 #endif // FOO_H_
