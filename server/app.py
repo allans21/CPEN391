@@ -6,6 +6,8 @@ from PIL import Image
 from base64 import b64decode
 from io import BytesIO
 from flask import Flask, request
+import db.utils
+import db.stock
 app = Flask(__name__)
 
 if not os.path.exists('img_store'):
@@ -13,7 +15,10 @@ if not os.path.exists('img_store'):
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
+    db_conn = db.utils.get_connection()
+    stock = db.stock.get_stock(db_conn, 1)
+    db_conn.close()
+    return 'Hello, World!' + str([s.__dict__ for s in stock])
 
 
 @app.route('/upload_img', methods=['POST'])
