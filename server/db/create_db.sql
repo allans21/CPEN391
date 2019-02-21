@@ -26,8 +26,7 @@ CREATE TABLE PRODUCTS (
     NAME VARCHAR(20),
     PRICE INT,
     PRIMARY KEY(ID));
-    
-    
+
 CREATE TABLE VENDINGMACHINE (
     ID INT AUTO_INCREMENT,
     LOCATION VARCHAR(20),
@@ -70,7 +69,7 @@ insert into STOCK (VENDINGID, PRODUCTID, QUANTITY, SLOT)
 values (1, 1, 5, 0);
 
 insert into STOCK (VENDINGID, PRODUCTID, QUANTITY, SLOT)
-values (1, 2, 10, 0);
+values (1, 2, 10, 1);
 
 insert into CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER)
 values("M01554195", "aidoraide@gmail.com", "6507 Maple St.", "Aidan Rosswood", 100000, "7788662529");

@@ -47,7 +47,7 @@ SerialConf* Init_WiFi(void *virtual_base)
 	*(sc->FifoControlReg) = *(sc->FifoControlReg) | 0x06;
 	// Now Clear all bits in the FiFo control registers
 	*(sc->FifoControlReg) = *(sc->FifoControlReg) ^  0x06;
-	Flush(sc->LineStatusReg, sc->ReceiverFifo);
+	Flush(sc);
 	char buf[10240] = "";
 	exec_lua(sc, "dofile(\"send_text_message.lua\")", buf);
 
@@ -55,8 +55,8 @@ SerialConf* Init_WiFi(void *virtual_base)
 	int got=0;
 	char *expected = "connected";
 	while (got < 9) {
-		while(TestForReceivedData(sc->LineStatusReg) != 1) {;}
-		c = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
+		while(TestForReceivedData(sc) != 1) {;}
+		c = (char) getchar_uart(sc);
 		printf("%c", c);
 		if (c == expected[got]) {
 			got += 1;
@@ -105,14 +105,14 @@ int exec_lua(SerialConf *sc, char * str, char * res) {
 	int bytes_received = 0;
 //	printf("executing %s as a Lua command\n", str);
 	while (*str) {
-		putchar_uart(*str, sc->LineStatusReg, sc->TransmitterFifo);
+		putchar_uart(*str, sc);
 
 //		while(TestForReceivedData(sc->LineStatusReg) == 1) {
 //			res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
 //		}
 		str += 1;
 	}
-	putchar_uart('\n', sc->LineStatusReg , sc->TransmitterFifo);
+	putchar_uart('\n', sc);
 //	while(TestForReceivedData(sc->LineStatusReg) == 1) {
 //		res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
 //	}
@@ -127,8 +127,8 @@ int exec_lua(SerialConf *sc, char * str, char * res) {
 void wait_for(SerialConf *sc, char *to_wait) {
 	int i = 0;
 	while (to_wait[i]) {
-		if (TestForReceivedData(sc->LineStatusReg) == 1) {
-			char c = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
+		if (TestForReceivedData(sc) == 1) {
+			char c = (char) getchar_uart(sc);
 			if (to_wait[i] == c) {
 				i++;
 			} else {

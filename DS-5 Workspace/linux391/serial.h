@@ -30,10 +30,10 @@ SerialConf *create_serial_conf(
 		volatile void * ScratchReg,
 		volatile void * DivisorLatchLSB,
 		volatile void * DivisorLatchMSB);
-int putchar_uart (int  , volatile unsigned char *  ,  volatile unsigned char * );
-int getchar_uart( volatile unsigned char *  ,  volatile unsigned char *   );
-int TestForReceivedData(volatile unsigned char *  );
-void Flush( volatile unsigned char *   , volatile unsigned char *  );
-
+int putchar_uart (int, SerialConf *);
+int getchar_uart(SerialConf *);
+int TestForReceivedData(SerialConf *);
+void Flush(SerialConf *);
+void putline(SerialConf *, char *);
 
 #endif

@@ -34,37 +34,46 @@ SerialConf *create_serial_conf(
 }
 
 
-int putchar_uart(int c, volatile unsigned char *  LineStatusReg ,  volatile unsigned char *  TransmitterFifo) {
+int putchar_uart(int c, SerialConf *sc) {
 	// wait for Transmitter Holding Register bit (5) of line status register to be '1'
 	// indicating we can write to the device
-	while ( (*LineStatusReg & 0x20)!= 0x20){
+	printf("%c", c);
+	while ( (*(sc->LineStatusReg) & 0x20)!= 0x20){
 		;
 	}
-	*TransmitterFifo = (unsigned char)c;
+	*(sc->TransmitterFifo) = (unsigned char)c;
 	// write character to Transmitter fifo register
 	return c;
 	// return the character we printed
 }
 
-int getchar_uart( volatile unsigned char *  LineStatusReg ,  volatile unsigned char *  ReceiverFifo )
+void putline(SerialConf *sc, char * str) {
+	while (*str) {
+		putchar_uart(*str, sc);
+		str += 1;
+	}
+	putchar_uart('\n', sc);
+}
+
+int getchar_uart(SerialConf *sc)
 	{
 
-	while ( (*LineStatusReg & 0x01)!= 0x01){
+	while ( (*(sc->LineStatusReg) & 0x01)!= 0x01){
 		;
 	}
 	// wait for Data Ready bit (0) of line status register to be '1'
 	// read new character from ReceiverFiFo register
-	return (int) *ReceiverFifo;
+	return (int) *(sc->ReceiverFifo);
 	// return new character
 }
 
 // the following function polls the UART to determine if any character
 // has been received. It doesn't wait for one, or read it, it simply tests
 // to see if one is available to read from the FIFO
-int TestForReceivedData(volatile unsigned char *  LineStatusReg)
+int TestForReceivedData(SerialConf *sc)
 {
 	// if RS232_LineStatusReg bit 0 is set to 1
-	if((*LineStatusReg & 0x01)== 0x01)
+	if((*(sc->LineStatusReg) & 0x01)== 0x01)
 		return TRUE;
 	else
 		return FALSE;
@@ -74,13 +83,13 @@ int TestForReceivedData(volatile unsigned char *  LineStatusReg)
 //
 // Remove/flush the UART receiver buffer by removing any unread characters
 //
-void Flush( volatile unsigned char *  LineStatusReg , volatile unsigned char *  ReceiverFifo)
+void Flush(SerialConf *sc)
 {
 	// while bit 0 of Line Status Register == ‘1’
 	// read unwanted char out of fifo receiver buffer
 	// return; // no more characters so return
 	int garbage;
-	while ( (*LineStatusReg & 0x01)== 0x01){
-		garbage = *ReceiverFifo;
+	while ( (*(sc->LineStatusReg) & 0x01)== 0x01){
+		garbage = *(sc->ReceiverFifo);
 	}
 }

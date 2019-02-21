@@ -11,6 +11,10 @@
 #include <pthread.h>
 #include <time.h>
 
+#include "wifi.h"
+#include "pi.h"
+#include "appObjects.h"
+
 static const char basis_64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -68,7 +72,6 @@ void *update(unsigned int * location){
 	}
 }
 
-#include "wifi.h"
 
 void upload_img(FILE *openFile, SerialConf *wifi_conf) {
 	time_t img_id = time(0);
@@ -147,25 +150,37 @@ int main(void)
 	pthread_create(&thread3,NULL, update,HEX2);
 	pthread_create(&thread4,NULL, update,HEX3);
 
-	SerialConf * wifi_conf = Init_WiFi(virtual_base);
+//	SerialConf * wifi_conf = Init_WiFi(virtual_base);
+//
+//	char read[65536];
+//	FILE* openFile = fopen("/media/barcode.jpg","r");
+//	upload_img(openFile, wifi_conf);
 
-	char read[65536];
-	FILE* openFile = fopen("/media/barcode.jpg","r");
-	upload_img(openFile, wifi_conf);
+	printf("=======================================\n");
+	printf("Contacting Pi\n");
+	char buf[4096];
+	SerialConf * pi_conf = Init_Pi(virtual_base);
+	Customer c;
+	int err = scan_id(pi_conf, &c);
+	printf("Customer ID=%d, credits=%d, name=\"%s\" phone_number=\"%s\"\n", c.ID, c.credits, c.name, c.phone_number);
+
+	Inventory **i;
+	err = get_inventory(pi_conf, 1, i);
+
+
 
 	pthread_join(thread1,NULL);
 	pthread_join(thread2,NULL);
 	pthread_join(thread3,NULL);
 	pthread_join(thread4,NULL);
 
-	openFile = fopen("/home/root/word.txt","w+");
+	FILE *openFile = fopen("/home/root/word.txt","w+");
 	fputs("Hello World",openFile);
 	fclose(openFile);
 	openFile = fopen("/home/root/word.txt","r");
-	fgets(read, 20, (FILE*)openFile);
-	printf("%s\n", read );
+	fgets(buf, 20, (FILE*)openFile);
+	printf("%s\n", buf);
 	fclose(openFile);
-
 
 	// when finished, unmap the virtual space and close the memory "device"
 	if( munmap( virtual_base, HW_REGS_SPAN ) != 0 ) {
