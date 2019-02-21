@@ -12,3 +12,18 @@ def get_stock(db_conn, vending_id):
     curs = db_conn.cursor()
     curs.execute(query, [vending_id])
     return [Stock(*row) for row in curs]
+
+
+def getInventory(db_conn, vending_id):
+    query = """SELECT STOCK.ID, STOCK.QUANTITY, STOCK.SLOT, PRODUCTS.NAME, PRODUCTS.PRICE 
+                 FROM STOCK
+                 LEFT JOIN PRODUCTS ON PRODUCTS.ID = STOCK.PRODUCTID
+                 WHERE STOCK.VENDINGID = %s
+                 ORDER BY STOCK.SLOT """
+    curs = db_conn.cursor()
+    curs.execute(query, [vending_id])
+    return [{
+        'stock_id': stock_id, 'quantity': quantity,
+        'slot': slot, 'name': name, 'price': price
+    } for stock_id, quantity, slot, name, price in curs]
+

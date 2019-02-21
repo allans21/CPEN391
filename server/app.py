@@ -1,4 +1,4 @@
-import os, uuid
+import os, uuid, json
 
 import numpy as np
 
@@ -8,6 +8,7 @@ from io import BytesIO
 from flask import Flask, request
 import db.utils
 import db.stock
+import db.customer
 app = Flask(__name__)
 
 if not os.path.exists('img_store'):
@@ -18,7 +19,7 @@ def hello_world():
     db_conn = db.utils.get_connection()
     stock = db.stock.get_stock(db_conn, 1)
     db_conn.close()
-    return 'Hello, World!' + str([s.__dict__ for s in stock])
+    return str([s.__dict__ for s in stock])
 
 
 @app.route('/upload_img', methods=['POST'])
@@ -66,4 +67,36 @@ def upload_chunk():
     
     return 'OK', 200
 
+@app.route('/user', methods=['GET'])
+def get_user():
+    if 'barcode_id' not in request.form:
+        return 'No barcode_id', 400
+
+    barcode_id = request.form['barcode_id']
+    db_conn = db.utils.get_connection()
+    customer = db.customer.getCustomerByBarcode(db_conn, barcode_id)
+
+    if not customer:
+        return 'No customer for that barcode', 400
+
+    return json.dumps({
+        'ID': customer.id,
+        'NAME': customer.name, 
+        'PHONENUMBER': customer.phone_number,
+        'CREDITS': customer.credits
+    })
+
+@app.route('/inventory', methods=['GET'])
+def get_inventory():
+    if 'machineId' not in request.form:
+        return 'No machineId', 400
+
+    machine_id = request.form['machineId']
+    db_conn = db.utils.get_connection()
+    inventory = db.stock.getInventory(db_conn, machine_id)
+
+    if inventory is None:
+        return 'Bad machineId', 400
+
+    return json.dumps(inventory)
 
