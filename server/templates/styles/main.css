@@ -1,0 +1,50 @@
+body{
+	background:#999;
+	font-family: arial;
+}
+
+h1, h2{
+	color: red;
+}
+
+p{
+	background: white;
+	padding: 5px 10px;
+}
+
+.secondary {
+	background:none;
+}
+
+nav ul li{
+	background:black;
+	display: inline-block;
+	list-style-type: none;
+	color: blue;
+	padding: 5px 15px;
+}
+
+.navbar-inverse .navbar-nav .selected a  {
+	color: white;
+}
+
+.row{
+	clear:both;
+}
+
+
+.col{
+	float: left;
+	background: #333;
+	padding: 10px .5%;
+	margin: .5%;
+	width: 31%;
+	border-radius: 5px; 
+
+}
+
+
+
+footer {
+	clear: both;
+}

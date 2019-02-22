@@ -5,21 +5,54 @@ import numpy as np
 from PIL import Image
 from base64 import b64decode
 from io import BytesIO
-from flask import Flask, request
+from flask import Flask, request, send_from_directory, make_response, render_template
+from werkzeug.routing import BaseConverter
+
 import db.utils
 import db.stock
 import db.customer
 app = Flask(__name__)
 
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
+
+@app.route('/')
+def root():
+    return render_template('HomeScreen.html')
+
 if not os.path.exists('img_store'):
     os.mkdir('img_store')
 
-@app.route('/')
-def hello_world():
-    db_conn = db.utils.get_connection()
-    stock = db.stock.get_stock(db_conn, 1)
-    db_conn.close()
-    return str([s.__dict__ for s in stock])
+
+class RegexConverter(BaseConverter):
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
+
+app.url_map.converters['regex'] = RegexConverter
+
+@app.route('/<regex(".+\\.(html|js|css)$"):fname>')
+def serve_html(fname):
+    return render_template(fname)
+
+
+@app.route('/photos/<regex(".+\\.(jpg|JPG|jpeg|JPEG)$"):fname>')
+def serveimg(fname):
+    image_binary = open(os.path.join('templates/photos', fname), 'rb').read()
+    response = make_response(image_binary)
+    response.headers.set('Content-Type', 'image/jpeg')
+    response.headers.set(
+        'Content-Disposition', 'attachment', filename=fname)
+    return response
 
 
 @app.route('/upload_img', methods=['POST'])
