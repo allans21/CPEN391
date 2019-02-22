@@ -3,6 +3,11 @@
 {% block title %}My Account{% endblock %}
 
 {% block content %}
+	{% if user %}
+		<h3>Hi {{user.name}} (#{{user.id}}), you have {{user.credits}} credits. </h3>
+	{% else %}
+		<h3>You are not logged in. You must login to view your account.</h3>
+	{% endif %}
 	<script>
 		$(".navbar-inverse .navbar-nav>li.myaccount").addClass("active");
 	</script>

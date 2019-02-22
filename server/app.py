@@ -13,6 +13,13 @@ import db.stock
 import db.customer
 app = Flask(__name__)
 
+def user_id2access_token(user_id):
+    return str(user_id)
+
+def access_token2user_id(access_token):
+    return int(access_token)
+
+
 @app.after_request
 def add_header(r):
     """
@@ -40,9 +47,23 @@ class RegexConverter(BaseConverter):
 
 app.url_map.converters['regex'] = RegexConverter
 
+@app.route('/CustomersAccount.html')
+def custaccount():
+    access_token = request.cookies.get('access_token')
+    if access_token:
+        user_id = access_token2user_id(access_token)
+        # TODO get user from database by ID, return error if no user
+        user = {'name': 'Aidan Rosswood', 'credits': 10000, 'id': 500}
+    else:
+        user = None
+
+    return render_template('CustomersAccount.html', user=user)
+
+
 @app.route('/<regex(".+\\.(html|js|css)$"):fname>')
 def serve_html(fname):
-    return render_template(fname)
+    access_token = request.cookies.get('access_token')
+    return render_template(fname, access_token=access_token)
 
 
 @app.route('/photos/<regex(".+\\.(jpg|JPG|jpeg|JPEG)$"):fname>')
@@ -57,13 +78,14 @@ def serveimg(fname):
 
 @app.route('/signin', methods=['POST'])
 def signin():
-    # TODO get user email
-    print(request.form)
     email, userpass = request.form.get('email'), request.form.get('userpass')
     if not email or not userpass:
-        return "Missing email or password", 400
+        return "Missing email or password", 400 # return error
 
-    return render_template('SignIn.html', username=email)
+    # TODO actually get user from database or return error if they arent in the DB, get their access token also
+    access_token = "420"
+
+    return render_template('SignIn.html', access_token=access_token)
 
 
 @app.route('/user', methods=['GET'])
