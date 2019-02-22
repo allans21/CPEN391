@@ -19,15 +19,15 @@
               <li class="myaccount"><a href="CustomersAccount.html">My Account</a></li>  
             </ul>
             <ul class="nav navbar-nav navbar-right">
-                 <form id="signin-form" action="/signin.html" class="navbar-form navbar-right">
+                <form id="signin-form" action="/signin" method="POST" class="navbar-form navbar-right">
                      <div class="form-group">
-                        <input type="text" class="form-control" id="usernam" placeholder="Username">
+                        <input type="text" class="form-control" id="email" name="email" placeholder="Email">
                   </div>
                   <div class="form-group">
-                        <input type="text" class="form-control" id="userpass" placeholder="Password">
+                        <input type="text" class="form-control" id="userpass" name="userpass" placeholder="Password">
                       </div>
                   <button type="submit" class="btn btn-primary" id="signin">Sign In</button>
-              </form>
+                </form>
           </ul>
       </div><!-- /.navbar-collapse -->
     </div><!-- /.container-fluid -->

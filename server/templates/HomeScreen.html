@@ -3,9 +3,7 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-	<style>
-		.navbar-inverse .navbar-nav>li.home>a  {
-			color: white;
-		}
-	</style>
+	<script>
+		$(".navbar-inverse .navbar-nav>li.home").addClass("active");
+	</script>
 {% endblock %}
