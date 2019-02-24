@@ -4324,23 +4324,26 @@ void ClearScreen(int colour){
 /*****************************************************************************************************************************************************************/
 /*****************************************************************************************************************************************************************/
 /*****************************************************************************************************************************************************************/
-
-void StartingScreen(){
+void First_StartingScreen(){
+    int font_letters;
+    
+        font_letters= BLACK;
+    
 
     ClearScreen(BACKGROUND);
     // char str[] = {'W', 'e', 'l', 'c', 'o', 'm', 'e', '!'};
     char str[] = "Welcome!";
 
-    PrintString(str, 8, 312, 100, BACKGROUND, FONT);
+    PrintString(str, 8, 312, 100, BACKGROUND, font_letters);
 
     char str1[] = "This is an age restricted";
-    PrintString(str1, 25, 125, 150, BACKGROUND, FONT);
+    PrintString(str1, 25, 125, 150, BACKGROUND,  font_letters);
 
     char str2[] = "vending machine.";
-    PrintString(str2, 16, 224, 200, BACKGROUND, FONT);
+    PrintString(str2, 16, 224, 200, BACKGROUND,  font_letters);
 
     char str3[] = "Please insert your I.D.";
-    PrintString(str3, 23, 147, 250, BACKGROUND, FONT);
+    PrintString(str3, 23, 147, 250, font_letters, font_letters);
 
 
     char str4[] = "  Press to continue";
@@ -4348,15 +4351,79 @@ void StartingScreen(){
 
 }
 
-void CheckingID(){
+void StartingScreen(int colour){
+    int font_letters;
+    if(colour%3==0)
+        font_letters= BLACK;
+    else if(colour%3==1)
+        font_letters= BLUE;
+    else 
+        font_letters= MAGENTA;
+    
 
-    ClearScreen(BACKGROUND);
+    // char str[] = {'W', 'e', 'l', 'c', 'o', 'm', 'e', '!'};
+    char str[] = "Welcome!";
 
+    PrintString(str, 8, 312, 100, BACKGROUND, font_letters);
+
+    char str1[] = "This is an age restricted";
+    PrintString(str1, 25, 125, 150, BACKGROUND,  font_letters);
+
+    char str2[] = "vending machine.";
+    PrintString(str2, 16, 224, 200, BACKGROUND,  font_letters);
+
+    char str3[] = "Please insert your I.D.";
+    PrintString(str3, 23, 147, 250, font_letters, font_letters);
+
+
+
+}
+
+void CheckingID(int counter){
+   
+    if(counter%7==0){
+         ClearScreen(BACKGROUND);
     char str1[] = "Please wait a moment";
     PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
 
     char str[] = "while your I.D is verified";
     PrintString(str, 27, 103, 200, BACKGROUND, FONT);
+
+
+     char str2[] = "Loading   ";
+    PrintString(str2, 10, 100, 400, BACKGROUND, FONT);
+    }
+    
+    switch(counter%7) {
+
+           case 0  :
+           break ;
+           case 1:
+           Circle(290, 410, 8, BLACK);
+           break;
+            case 2:
+           Circle(315, 410, 8, BLACK);
+           break;
+
+            case 3:
+           Circle(340, 410, 8, BLACK);
+           break;
+            case 4:
+           Circle(365, 410, 8, BLACK);
+           break;
+            case 5:
+           Circle(390, 410, 8, BLACK);
+           break;
+            case 6:
+           Circle(415, 410, 8, BLACK);
+           break;
+            case 7:
+           Circle(430, 410, 8, BLACK);
+           break;
+        }
+
+
+    
 
 }
 
@@ -4371,18 +4438,114 @@ void ErrorID(){
     PrintString(str, 20, 180, 200, BACKGROUND, FONT);
 }
 
-void PickType(){
+void PickType(int amount){
 
     ClearScreen(BACKGROUND);
+   // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
 
+    char str[] = "Username: Cristian Brazales";
+    Button(600, 50, 300, 25, LIME, BLACK,YELLOW , str,20);
+    char str4[] = "CR: 50";
+    Button(200, 50, 700, 25, LIME, BLACK,YELLOW , str4, 7);
+    char str5[] = "Sign out";
+    Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
+    char str6[] = "Pay";
+    Button(200, 50, 360, 450, LIME, BLACK,BLACK , str6, 3);
+    char str7[] = "Total:";
+    Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
+
+
+
+   int y = amount % 10;
+    char fir = (char) 48 + y;
+    amount -= y;
+    y = (amount % 100) / 10;
+    char sec = (char) 48 + y;
+    amount -= y*10;
+    y = (amount % 1000) / 100;
+    char thir = (char) 48 + y;
+    amount -= y*100;
+    y = (amount % 10000) / 1000;
+    char forth = (char) 48 + y;
+    amount -= y*1000;
+    char chr[] = {'$', fir, sec, '.', thir, forth};
+
+    Button(140, 50, 680, 450, LIME, BLACK, WHITE ,chr , 6);
+
+    // beer 
     char str1[] = "Beer";
-    Button(250, 60, 400, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
+
+
+    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
+    // plus 
+    FilledRectangle(585, 595,130,170,RED);
+
+    FilledRectangle(565, 615,145,155,RED);
+    //  minus
+    FilledRectangle(705, 745,145,155,BLACK);
+    // string amount of beer
+    char num_beer[] ="0" ;
+    PrintString(num_beer, 1, 635, 130, BUTTONCOL, BLACK);
+
 
     char str2[] = "Weed";
-    Button(250, 60, 400, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
+    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
+      // plus 
+    FilledRectangle(585, 595,220,260,RED);
+
+    FilledRectangle(565, 615,235,245,RED);
+    //  minus
+    FilledRectangle(705, 745,235,245,BLACK);
+    /// string for amount 
+    char num_weed[] ="0" ;
+    PrintString(num_weed, 1, 635, 220, BUTTONCOL, BLACK);
+
+
 
     char str3[] = "Cigarettes";
-    Button(250, 60, 400, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
+    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
+         // plus 
+    FilledRectangle(585, 595,310,350,RED);
+
+    FilledRectangle(565, 615,325,335,RED);
+    //  minus
+    FilledRectangle(705, 745,325,335,BLACK);
+    // string cigarrets
+    char num_cigar[] ="0" ;
+    PrintString(num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
+
+
+
+}
+void PickTypeUpdate(int amount, int beer, int weed, int cigar){
+   // prints the total amount
+    //ClearScreen(BACKGROUND);
+   int y = amount % 10;
+    char fir = (char) 48 + y;
+    amount -= y;
+    y = (amount % 100) / 10;
+    char sec = (char) 48 + y;
+    amount -= y*10;
+    y = (amount % 1000) / 100;
+    char thir = (char) 48 + y;
+    amount -= y*100;
+    y = (amount % 10000) / 1000;
+    char forth = (char) 48 + y;
+    amount -= y*1000;
+    char chr[] = {'$', fir, sec, '.', thir, forth};
+
+    Button(140, 50, 680, 450, LIME, BLACK, WHITE ,chr , 6);
+    // prints the number of each thing
+    char num_weed =(char) 48 + weed;
+    PrintString(&num_weed, 1, 635, 220, BUTTONCOL, BLACK);
+
+    char num_cigar =(char) 48 + cigar;
+    PrintString(&num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
+
+    char num_beer =(char) 48 + beer;
+    PrintString(&num_beer, 1, 635, 130, BUTTONCOL, BLACK);
+
+
 
 }
 void Dispense(){
@@ -4391,7 +4554,7 @@ void Dispense(){
 
     char str1[] = "Please wait a moment";
        PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
-    char str[] = "dispensing";
+        char str[] = "dispensing";
           PrintString(str, 10, 200, 200, BACKGROUND, FONT);
 
 
@@ -4429,6 +4592,15 @@ void Payment(int x){
 void MakeSelection(){
 
     ClearScreen(BACKGROUND);
+
+
+    char str1[] = "Thanks for Buying!";
+    PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
+
+    char str[] = "Have a good day! =)";
+    PrintString(str, 20, 180, 200, BACKGROUND, FONT);
+
+    /*
     char str3[] = "Cigarettes";
 
     Button(350, 60, 205, 47,  BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
@@ -4444,5 +4616,15 @@ void MakeSelection(){
     Button(350, 60, 595, 278, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
     Button(350, 60, 595, 355, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
     Button(350, 60, 595, 432, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
+*/
+
+
+}
+int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR){
+    //x axis 
+    if( y>=y_upperL && y<= y_lowerR && x>=x_upper_L && x<=x_lowerR )
+        return TRUE;
+    else
+        return FALSE;
 
 }

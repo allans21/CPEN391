@@ -44,7 +44,8 @@
 #define CYAN            6
 #define MAGENTA         7
 
-
+#define TRUE 1
+#define FALSE 0
 
 #define XRES 800
 #define YRES 480
@@ -113,6 +114,21 @@ void Button(int width, int height, int centerx, int centery, int colour, int bor
 
 //Clears screen replacing it with a blank screen of colour colour
 void ClearScreen(int colour);
+//
+void First_StartingScreen();
+void StartingScreen(int colour);
+void CheckingID(int counter);
+void ErrorID();
+void PickType(int amount);
+void PickTypeUpdate(int amount, int beer, int weed, int cigar);
+void Dispense();
+
+
+//x is the amount the customer needs to pay 1234 = $12.34
+void Payment(int x);
+void MakeSelection();
+int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR);
+
 
 
 #endif // SCREENFUNCTIONS_H_

@@ -163,8 +163,15 @@ int ScreenTouched( void )
 {
   // return TRUE if any data received from serial pory connected to
   // touchscreen or FALSE otherwise
-  char test = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
-  return ((test>>7)%2 == 1 && (test%2) == 1); //pen down
+  if(TestForReceivedData(TouchScreen_LineStatusReg)){
+
+    char test = getchar_uart( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo );
+    //Flush( TouchScreen_LineStatusReg ,  TouchScreen_ReceiverFifo);
+      return ((test>>7)%2 == 1 && (test%2) == 1); //pen down
+
+  }
+  return FALSE;
+  
 
 }
 int ScreenReleased( void )
