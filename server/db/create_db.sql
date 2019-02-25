@@ -51,7 +51,6 @@ CREATE TABLE STOCK (
     grant select on OWNERS to public;
     grant select on PRODUCTS to public;
 
-#---------------------------------- END TABLE CREATION -----------------------------------
 
 insert into OWNERS (EMAIL, ADDRESS, PHONENUMBER)
 values ("this@gmail.com", "6579 Laburnum St.", "2508265287");
