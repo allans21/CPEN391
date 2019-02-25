@@ -87,7 +87,7 @@ int scan_id(SerialConf *sc, Customer *c){
     {
         c->name = strdup(name->valuestring);
     } else {
-		printf("FAILED TO GET NAME");
+		printf("FAILED TO GET NAME\n");
 		return 1;
 	}
 
@@ -96,7 +96,7 @@ int scan_id(SerialConf *sc, Customer *c){
 	{
 		c->phone_number = strdup(phone_number->valuestring);
 	} else {
-		printf("FAILED TO GET PHONENUMBER");
+		printf("FAILED TO GET PHONENUMBER\n");
 		return 1;
 	}
 
@@ -104,7 +104,7 @@ int scan_id(SerialConf *sc, Customer *c){
 	if (cJSON_IsNumber(ID)) {
 		c->ID = ID->valueint;
 	} else {
-		printf("FAILED TO GET ID");
+		printf("FAILED TO GET ID\n");
 		return 1;
 	}
 
@@ -112,7 +112,7 @@ int scan_id(SerialConf *sc, Customer *c){
 	if (cJSON_IsNumber(credits)) {
 		c->credits = credits->valueint;
 	} else {
-		printf("FAILED TO GET CREDITS");
+		printf("FAILED TO GET CREDITS\n");
 		return 1;
 	}
 
@@ -120,7 +120,9 @@ int scan_id(SerialConf *sc, Customer *c){
 	return 0;
 }
 
-int get_inventory(SerialConf *sc, int machine_id, Inventory ** i) {
+// Returns error. Points Inventory ** i to a newly allocated array. Caller must free.
+// length contains the length of the newly allocated array
+int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int *length) {
 	// Send command
 	char exec_buf[256];
 	int execlen = sprintf(exec_buf, "{\"cmd\":\"getInventory\",\"machineId\":%d}", machine_id);
@@ -132,8 +134,82 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** i) {
 	printf("Got %d bytes\n", len);
 	printf("%s\n", response);
 
+	cJSON *item = NULL;
+	cJSON *inventoryArray = cJSON_Parse(response);
+
+	*length = cJSON_GetArraySize(inventoryArray);
+
+	if (*length <= 0) {
+		printf("FAILED TO GET JSON INVENTORY ARRAY\n");
+		return 1;
+	}
+
+	int i = 0;
+	Inventory *inventory = malloc(sizeof(Inventory)*len);
+
 	// Parse data
+	cJSON_ArrayForEach(item, inventoryArray)
+	{
+		cJSON *slot = cJSON_GetObjectItemCaseSensitive(item, "slot");
+		cJSON *price = cJSON_GetObjectItemCaseSensitive(item, "price");
+		cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
+		cJSON *stock_id = cJSON_GetObjectItemCaseSensitive(item, "stock_id");
+		cJSON *quantity = cJSON_GetObjectItemCaseSensitive(item, "quantity");
+
+		char *string = cJSON_Print(item);
+		printf("%d: %s\n", i, string);
+		free(string);
+
+		if (!cJSON_IsNumber(slot) || !cJSON_IsNumber(price)
+				|| !cJSON_IsNumber(stock_id) || !cJSON_IsNumber(quantity)
+				|| !cJSON_IsString(name))
+		{
+			printf("BAD TYPE FOR ITEM %d\n", i);
+			free(inventory);
+			cJSON_Delete(inventoryArray);
+			return 1;
+		}
+		int slotIdx = slot->valueint;// TODO once DB is fixed slot->valueint;
+
+		inventory[slotIdx].name = strdup(name->valuestring);
+		inventory[slotIdx].slot = slot->valueint;
+		inventory[slotIdx].price = price->valueint;
+		inventory[slotIdx].stock_id = quantity->valueint;
+		inventory[slotIdx].quantity = quantity->valueint;
+		i++;
+	}
 
 
+	cJSON_Delete(inventoryArray);
+	*inventoryRet = inventory;
 	return 0;
 }
+
+int make_purchase(SerialConf *sc, int machine_id, int customer_id, int *purchases, int purchases_len, int *newBalance) {
+	cJSON *item_ids = cJSON_CreateIntArray(purchases, purchases_len);
+	char *item_ids_str = cJSON_Print(item_ids);
+	// Send command
+	char exec_buf[1024];
+	int execlen = sprintf(exec_buf, "{\"cmd\":\"confirmPurchase\",\"machineId\":%d,\"userId\":%d,\"itemIds\":%s}",
+			machine_id, customer_id, item_ids_str);
+	putline(sc, exec_buf);
+
+	free(item_ids_str);
+
+	// Receive response
+	char response[4096];
+	int len = read_response(sc, response);
+	printf("Got %d bytes\n", len);
+	printf("%s\n", response);
+
+	cJSON *json = cJSON_Parse(response);
+	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newBalance");
+	if (!jsonNewBal || !cJSON_IsNumber(jsonNewBal)) {
+		cJSON_Delete(json);
+		return 1;
+	}
+	*newBalance = jsonNewBal->valueint;
+	cJSON_Delete(json);
+	return 0;
+}
+

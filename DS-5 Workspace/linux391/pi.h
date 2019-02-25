@@ -5,7 +5,7 @@
 #include "appObjects.h"
 
 int scan_id(SerialConf *, Customer *);
-int get_inventory(SerialConf *, int, Inventory **);
+int get_inventory(SerialConf *, int, Inventory **, int *);
 SerialConf *Init_Pi(void*);
 
 #endif
