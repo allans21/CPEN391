@@ -55,8 +55,7 @@ void putline(SerialConf *sc, char * str) {
 	putchar_uart('\n', sc);
 }
 
-int getchar_uart(SerialConf *sc)
-	{
+int getchar_uart(SerialConf *sc){
 
 	while ( (*(sc->LineStatusReg) & 0x01)!= 0x01){
 		;
@@ -70,8 +69,7 @@ int getchar_uart(SerialConf *sc)
 // the following function polls the UART to determine if any character
 // has been received. It doesn't wait for one, or read it, it simply tests
 // to see if one is available to read from the FIFO
-int TestForReceivedData(SerialConf *sc)
-{
+int TestForReceivedData(SerialConf *sc) {
 	// if RS232_LineStatusReg bit 0 is set to 1
 	if((*(sc->LineStatusReg) & 0x01)== 0x01)
 		return TRUE;

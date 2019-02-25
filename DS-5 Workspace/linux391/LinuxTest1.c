@@ -15,47 +15,51 @@
 #include "pi.h"
 #include "appObjects.h"
 
+#include "screenfunctions.h"
+
+#include "virtualfuck.h"
+
 #define MACHINE_ID 1
 
-static const char basis_64[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-int Base64encode_len(int len)
-{
-    return ((len + 2) / 3 * 4) + 1;
-}
-
-int Base64encode(char *encoded, const char *string, int len)
-{
-    int i;
-    char *p;
-
-    p = encoded;
-    for (i = 0; i < len - 2; i += 3) {
-    *p++ = basis_64[(string[i] >> 2) & 0x3F];
-    *p++ = basis_64[((string[i] & 0x3) << 4) |
-                    ((int) (string[i + 1] & 0xF0) >> 4)];
-    *p++ = basis_64[((string[i + 1] & 0xF) << 2) |
-                    ((int) (string[i + 2] & 0xC0) >> 6)];
-    *p++ = basis_64[string[i + 2] & 0x3F];
-    }
-    if (i < len) {
-    *p++ = basis_64[(string[i] >> 2) & 0x3F];
-    if (i == (len - 1)) {
-        *p++ = basis_64[((string[i] & 0x3) << 4)];
-        *p++ = '=';
-    }
-    else {
-        *p++ = basis_64[((string[i] & 0x3) << 4) |
-                        ((int) (string[i + 1] & 0xF0) >> 4)];
-        *p++ = basis_64[((string[i + 1] & 0xF) << 2)];
-    }
-    *p++ = '=';
-    }
-
-    *p++ = '\0';
-    return p - encoded;
-}
+//static const char basis_64[] =
+//    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+//
+//int Base64encode_len(int len)
+//{
+//    return ((len + 2) / 3 * 4) + 1;
+//}
+//
+//int Base64encode(char *encoded, const char *string, int len)
+//{
+//    int i;
+//    char *p;
+//
+//    p = encoded;
+//    for (i = 0; i < len - 2; i += 3) {
+//    *p++ = basis_64[(string[i] >> 2) & 0x3F];
+//    *p++ = basis_64[((string[i] & 0x3) << 4) |
+//                    ((int) (string[i + 1] & 0xF0) >> 4)];
+//    *p++ = basis_64[((string[i + 1] & 0xF) << 2) |
+//                    ((int) (string[i + 2] & 0xC0) >> 6)];
+//    *p++ = basis_64[string[i + 2] & 0x3F];
+//    }
+//    if (i < len) {
+//    *p++ = basis_64[(string[i] >> 2) & 0x3F];
+//    if (i == (len - 1)) {
+//        *p++ = basis_64[((string[i] & 0x3) << 4)];
+//        *p++ = '=';
+//    }
+//    else {
+//        *p++ = basis_64[((string[i] & 0x3) << 4) |
+//                        ((int) (string[i + 1] & 0xF0) >> 4)];
+//        *p++ = basis_64[((string[i + 1] & 0xF) << 2)];
+//    }
+//    *p++ = '=';
+//    }
+//
+//    *p++ = '\0';
+//    return p - encoded;
+//}
 
 
 #define HW_REGS_BASE ( 0xff200000 )
@@ -66,7 +70,8 @@ int Base64encode(char *encoded, const char *string, int len)
 #define HEX2_OFFSET 0x40
 #define HEX3_OFFSET 0x50
 
-void *update(unsigned int * location){
+
+void *updateShits(unsigned int * location){
 	int k;
 	for(k = 0; k <10; k++){
 		*location = *location + 1;
@@ -75,52 +80,52 @@ void *update(unsigned int * location){
 }
 
 
-void upload_img(FILE *openFile, SerialConf *wifi_conf) {
-	time_t img_id = time(0);
-	const size_t BUFSIZE = 65536;
-	char read[BUFSIZE];
-	char write[BUFSIZE];
-
-	fseek(openFile, 0, SEEK_END);
-	long fsize = ftell(openFile);
-	fseek(openFile, 0, SEEK_SET);
-	fread(read, 1, fsize, openFile);
-
-	char b64_encoded[BUFSIZE];
-	int b64_len = Base64encode(b64_encoded, read, fsize);
-
-	printf("%s\n", b64_encoded);
-
-	printf("og len %d b64 len %d\n", fsize, b64_len);
-
-	const size_t XBUFLEN = 128;
-	char exec_buf[XBUFLEN*2];
-	char b64_buf[XBUFLEN];
-	unsigned int j = 0;
-	unsigned int chunk_num = 0;
-	while (j < b64_len) {
-		memcpy(b64_buf, b64_encoded+j, b64_len-j < XBUFLEN-1 ? b64_len-j : XBUFLEN-1);
-		b64_buf[XBUFLEN-1] = '\0';
-		int len = sprintf(exec_buf, "s=\"%s\" ", b64_buf);
-		exec_lua(wifi_conf, exec_buf, read);
-		len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, %d, s)", img_id, chunk_num);
-		exec_lua(wifi_conf, exec_buf, read);
-		wait_for(wifi_conf, "200 OK");
-		j += XBUFLEN - 1;
-		chunk_num += 1;
-	}
-
-	sprintf(exec_buf, "upload_img(\"aidanrosswood.ca\", 4000, %d) ", img_id);
-	exec_lua(wifi_conf, exec_buf, read);
-}
-
-int main(void)
+//void upload_img(FILE *openFile, SerialConf *wifi_conf) {
+//	time_t img_id = time(0);
+//	const size_t BUFSIZE = 65536;
+//	char read[BUFSIZE];
+//	char write[BUFSIZE];
+//
+//	fseek(openFile, 0, SEEK_END);
+//	long fsize = ftell(openFile);
+//	fseek(openFile, 0, SEEK_SET);
+//	fread(read, 1, fsize, openFile);
+//
+//	char b64_encoded[BUFSIZE];
+//	int b64_len = Base64encode(b64_encoded, read, fsize);
+//
+//	printf("%s\n", b64_encoded);
+//
+//	printf("og len %d b64 len %d\n", fsize, b64_len);
+//
+//	const size_t XBUFLEN = 128;
+//	char exec_buf[XBUFLEN*2];
+//	char b64_buf[XBUFLEN];
+//	unsigned int j = 0;
+//	unsigned int chunk_num = 0;
+//	while (j < b64_len) {
+//		memcpy(b64_buf, b64_encoded+j, b64_len-j < XBUFLEN-1 ? b64_len-j : XBUFLEN-1);
+//		b64_buf[XBUFLEN-1] = '\0';
+//		int len = sprintf(exec_buf, "s=\"%s\" ", b64_buf);
+//		exec_lua(wifi_conf, exec_buf, read);
+//		len = sprintf(exec_buf, "upload_chunk(\"aidanrosswood.ca\", 4000, %d, %d, s)", img_id, chunk_num);
+//		exec_lua(wifi_conf, exec_buf, read);
+//		wait_for(wifi_conf, "200 OK");
+//		j += XBUFLEN - 1;
+//		chunk_num += 1;
+//	}
+//
+//	sprintf(exec_buf, "upload_img(\"aidanrosswood.ca\", 4000, %d) ", img_id);
+//	exec_lua(wifi_conf, exec_buf, read);
+//}
+volatile int virtual_base;
+int main1(void)
 {
 	unsigned int *Red_Leds = NULL;
 	unsigned int *HEX1 = NULL;
 	unsigned int *HEX2 = NULL;
 	unsigned int *HEX3 = NULL;
-	void *virtual_base;
+//	void *virtual_base;
 	int fd;
 
 	// Open memory as if it were a device for read and write access
@@ -147,10 +152,16 @@ int main(void)
 	pthread_t thread2;
 	pthread_t thread3;
 	pthread_t thread4;
-	pthread_create(&thread1,NULL, update,Red_Leds);
-	pthread_create(&thread2,NULL, update,HEX1);
-	pthread_create(&thread3,NULL, update,HEX2);
-	pthread_create(&thread4,NULL, update,HEX3);
+	pthread_create(&thread1,NULL, updateShits,Red_Leds);
+	pthread_create(&thread2,NULL, updateShits,HEX1);
+	pthread_create(&thread3,NULL, updateShits,HEX2);
+	pthread_create(&thread4,NULL, updateShits,HEX3);
+
+
+	printf("virtual_base = %x\n", virtual_base);
+	printf("GraphicsCommandReg = %x\n", GraphicsCommandReg);
+
+	ErrorID();
 
 //	SerialConf * wifi_conf = Init_WiFi(virtual_base);
 //
