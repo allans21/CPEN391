@@ -4,28 +4,29 @@
 #include "pi.h"
 #include "cJSON.h"
 
-#define Bluetooth_ReceiverFifo        ((volatile unsigned char *)(0xFF210220))
-#define Bluetooth_TransmitterFifo     ((volatile unsigned char *)(0xFF210220))
-#define Bluetooth_InterruptEnableReg  ((volatile unsigned char *)(0xFF210222))
-#define Bluetooth_InterruptIdentificationReg ((volatile unsigned char *)(0xFF210224))
-#define Bluetooth_FifoControlReg ((volatile unsigned char *)(0xFF210224))
-#define Bluetooth_LineControlReg ((volatile unsigned char *)(0xFF210226))
-#define Bluetooth_ModemControlReg ((volatile unsigned char *)(0xFF210228))
-#define Bluetooth_LineStatusReg ((volatile unsigned char *)(0xFF21022A))
-#define Bluetooth_ModemStatusReg ((volatile unsigned char *)(0xFF21022C))
-#define Bluetooth_ScratchReg ((volatile unsigned char *)(0xFF21022E))
-#define Bluetooth_DivisorLatchLSB ((volatile unsigned char *)(0xFF210220))
-#define Bluetooth_DivisorLatchMSB ((volatile unsigned char *)(0xFF210222))
+#define GPS_ReceiverFifo        ((volatile unsigned char *)(0xFF210210))
+#define GPS_TransmitterFifo     ((volatile unsigned char *)(0xFF210210))
+#define GPS_InterruptEnableReg  ((volatile unsigned char *)(0xFF210212))
+#define GPS_InterruptIdentificationReg ((volatile unsigned char *)(0xFF210214))
+#define GPS_FifoControlReg ((volatile unsigned char *)(0xFF210214))
+#define GPS_LineControlReg ((volatile unsigned char *)(0xFF210216))
+#define GPS_ModemControlReg ((volatile unsigned char *)(0xFF210218))
+#define GPS_LineStatusReg ((volatile unsigned char *)(0xFF21021A))
+#define GPS_ModemStatusReg ((volatile unsigned char *)(0xFF21021C))
+#define GPS_ScratchReg ((volatile unsigned char *)(0xFF21021E))
+#define GPS_DivisorLatchLSB ((volatile unsigned char *)(0xFF210210))
+#define GPS_DivisorLatchMSB ((volatile unsigned char *)(0xFF210212))
+
 #define TRUE 1
 #define FALSE 0
 
 SerialConf* Init_Pi(void *virtual_base) {
 	SerialConf *sc = create_serial_conf(virtual_base,
-			Bluetooth_ReceiverFifo, Bluetooth_TransmitterFifo,
-			Bluetooth_InterruptEnableReg, Bluetooth_InterruptIdentificationReg,
-			Bluetooth_FifoControlReg, Bluetooth_LineControlReg, Bluetooth_ModemControlReg,
-			Bluetooth_LineStatusReg, Bluetooth_ModemStatusReg, Bluetooth_ScratchReg,
-			Bluetooth_DivisorLatchLSB, Bluetooth_DivisorLatchMSB);
+			GPS_ReceiverFifo, GPS_TransmitterFifo,
+			GPS_InterruptEnableReg, GPS_InterruptIdentificationReg,
+			GPS_FifoControlReg, GPS_LineControlReg, GPS_ModemControlReg,
+			GPS_LineStatusReg, GPS_ModemStatusReg, GPS_ScratchReg,
+			GPS_DivisorLatchLSB, GPS_DivisorLatchMSB);
 	// set bit 7 of Line Control Register to 1, to gain access to the baud rate registers
 	unsigned char line_control_register;
 	line_control_register= *(sc->LineControlReg);
@@ -54,6 +55,7 @@ int read_response(SerialConf *sc, char *buf) {
 	while (c != '{' && c != '[') {
 		c = getchar_uart(sc);
 	}
+	printf("read start char %c\n", c);
 	char startChar = c;
 	char stopChar = c == '{' ? '}' : ']';
 	int stack = 1;
@@ -145,7 +147,7 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 	}
 
 	int i = 0;
-	Inventory *inventory = malloc(sizeof(Inventory)*len);
+	Inventory *inventory = malloc(sizeof(Inventory) * (int)(*length));
 
 	// Parse data
 	cJSON_ArrayForEach(item, inventoryArray)
@@ -174,7 +176,7 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 		inventory[slotIdx].name = strdup(name->valuestring);
 		inventory[slotIdx].slot = slot->valueint;
 		inventory[slotIdx].price = price->valueint;
-		inventory[slotIdx].stock_id = quantity->valueint;
+		inventory[slotIdx].stock_id = stock_id->valueint;
 		inventory[slotIdx].quantity = quantity->valueint;
 		i++;
 	}
@@ -203,7 +205,7 @@ int make_purchase(SerialConf *sc, int machine_id, int customer_id, int *purchase
 	printf("%s\n", response);
 
 	cJSON *json = cJSON_Parse(response);
-	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newBalance");
+	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newCredit");
 	if (!jsonNewBal || !cJSON_IsNumber(jsonNewBal)) {
 		cJSON_Delete(json);
 		return 1;

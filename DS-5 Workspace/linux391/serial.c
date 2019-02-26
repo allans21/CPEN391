@@ -37,7 +37,7 @@ SerialConf *create_serial_conf(
 int putchar_uart(int c, SerialConf *sc) {
 	// wait for Transmitter Holding Register bit (5) of line status register to be '1'
 	// indicating we can write to the device
-	printf("%c", c);
+//	printf("putchar %d\n", c);
 	while ( (*(sc->LineStatusReg) & 0x20)!= 0x20){
 		;
 	}
@@ -48,6 +48,7 @@ int putchar_uart(int c, SerialConf *sc) {
 }
 
 void putline(SerialConf *sc, char * str) {
+	printf("putline: %s\n", str);
 	while (*str) {
 		putchar_uart(*str, sc);
 		str += 1;
@@ -55,23 +56,23 @@ void putline(SerialConf *sc, char * str) {
 	putchar_uart('\n', sc);
 }
 
-int getchar_uart(SerialConf *sc)
-	{
+int getchar_uart(SerialConf *sc){
 
 	while ( (*(sc->LineStatusReg) & 0x01)!= 0x01){
 		;
 	}
 	// wait for Data Ready bit (0) of line status register to be '1'
 	// read new character from ReceiverFiFo register
-	return (int) *(sc->ReceiverFifo);
+	int ret = (int) *(sc->ReceiverFifo);
+//	printf("getchar %d\n", ret);
+	return ret;
 	// return new character
 }
 
 // the following function polls the UART to determine if any character
 // has been received. It doesn't wait for one, or read it, it simply tests
 // to see if one is available to read from the FIFO
-int TestForReceivedData(SerialConf *sc)
-{
+int TestForReceivedData(SerialConf *sc) {
 	// if RS232_LineStatusReg bit 0 is set to 1
 	if((*(sc->LineStatusReg) & 0x01)== 0x01)
 		return TRUE;
