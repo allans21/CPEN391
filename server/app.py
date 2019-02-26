@@ -163,7 +163,7 @@ def signup():
     access_token = customer.id
     print(customer.password)
     user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
-    return render_template('CustomersAccount.html', access_token=access_token, user=user)
+    return render_template('signingup.html', access_token=access_token, user=user)
 
 
 @app.route('/user', methods=['GET'])
