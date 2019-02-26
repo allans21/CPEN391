@@ -3,6 +3,7 @@
 #define SCREENFUNCTIONS_H_
 
 #include "virtualfuck.h"
+#include "appObjects.h"
 
 #define HW_REGS_BASE ( 0xff200000 )
 #define HW_REGS_SPAN ( 0x00200000 )
@@ -56,7 +57,7 @@
 #define XRES 800
 #define YRES 480
 
-#define BACKGROUND      CYAN
+#define BACKGROUND      WHITE
 #define FONT            BLACK
 #define BUTTONCOL       WHITE
 #define BUTTONFONT      BLACK
@@ -125,14 +126,14 @@ void First_StartingScreen();
 void StartingScreen(int colour);
 void CheckingID(int counter);
 void ErrorID();
-void PickType(int amount);
-void PickTypeUpdate(int amount, int beer, int weed, int cigar);
+void PickType(Customer *c, Inventory * inventoryList, int inventoryLen);
+void PickTypeUpdate(int amount, int *quantities, int numItems);
 void Dispense();
 
 
 //x is the amount the customer needs to pay 1234 = $12.34
 void Payment(int x);
-void Complete();
+void Complete(int newBalance);
 int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR);
 
 

@@ -37,7 +37,7 @@ SerialConf *create_serial_conf(
 int putchar_uart(int c, SerialConf *sc) {
 	// wait for Transmitter Holding Register bit (5) of line status register to be '1'
 	// indicating we can write to the device
-	printf("%c", c);
+//	printf("putchar %d\n", c);
 	while ( (*(sc->LineStatusReg) & 0x20)!= 0x20){
 		;
 	}
@@ -48,6 +48,7 @@ int putchar_uart(int c, SerialConf *sc) {
 }
 
 void putline(SerialConf *sc, char * str) {
+	printf("putline: %s\n", str);
 	while (*str) {
 		putchar_uart(*str, sc);
 		str += 1;
@@ -62,7 +63,9 @@ int getchar_uart(SerialConf *sc){
 	}
 	// wait for Data Ready bit (0) of line status register to be '1'
 	// read new character from ReceiverFiFo register
-	return (int) *(sc->ReceiverFifo);
+	int ret = (int) *(sc->ReceiverFifo);
+//	printf("getchar %d\n", ret);
+	return ret;
 	// return new character
 }
 

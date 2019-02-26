@@ -17,12 +17,23 @@
 #define HW_REGS_SPAN ( 0x00200000 )
 #define HW_REGS_MASK ( HW_REGS_SPAN - 1 )
 
+#define MACHINE_ID 1
 
 #include "virtualfuck.h"
 #include "serial_ports.h"
 #include "screenfunctions.h"
 
-enum state{main_page, scanid_page, error_page,picktype_page,payment_page, dispense_page,make_selection_page, complete_page};
+enum state{
+	main_page,
+	scanid_page,
+	error_page,
+	picktype_page,
+	payment_page,
+	dispense_page,
+	make_selection_page,
+	complete_page,
+	payment_confirmation_page
+};
 
 enum item{beer,weed,cigars};
 
@@ -55,24 +66,24 @@ int main () {
 	int counter=0;
 	SerialConf * touch_conf = Init_Touch(virtual_base); // TODO get real virtual base
 	SerialConf * motor_conf = Init_Motors(virtual_base);
+	SerialConf * pi_conf    = Init_Pi(virtual_base);
+//	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
+
+
+
     int amount_to_pay=0;
     int valid;
 	Point touch;
-	int amount_beers;
-	int amount_weed;
-	int amount_cigar;
-	int beers_stock=10000;
-	int weed_stock=10000;
-	int cigar_stock=1000;
-	int current_credits=10000;
-	int new_amountPay;
-	int price_beer=200;
-	int price_weed=420;
-	int price_cigars=100;
 	int flag = TRUE;
+	int err = FALSE;
+	Customer customer;
+	Inventory *inventory;
+	int inventoryLen;
+	int totalPrice = 500;
+	int quantities[64] = {0};
+
+	printf("Looping!\n");
 	while(1){
-
-
 
 /// LOGIC IN EACH PAGE
 		switch(next_state) {
@@ -84,22 +95,23 @@ int main () {
 		   	   flag=TRUE;
 		   	   while(flag){
 		   	   	StartingScreen(colour_welcome);
-		   		   First_StartingScreen();
+//		   		   First_StartingScreen();
 		   	   	colour_welcome++;
 			   //loops here until the screen has been touched;
 
 			  	for(int i=0;i<700000;i++){
-			  	 	if(ScreenTouched(touch_conf) ){
-			  				  		WaitForReleased(touch_conf);
-			  						touch=  GetRelease(touch_conf);
-			  						printf("x axis: %d", touch.x);
-			  						printf("  y axis: %d\n", touch.y);
-			  				  		if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
-			  				  		/// read the status of the vending machine
-			  						next_state= scanid_page;
-			  						flag=FALSE;
-			  						break;}
-			  				  	}
+			  	 	if( ScreenTouched(touch_conf) ){
+						WaitForReleased(touch_conf);
+						touch=  GetRelease(touch_conf);
+						printf("x axis: %d", touch.x);
+						printf("  y axis: %d\n", touch.y);
+						if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
+							/// read the status of the vending machine
+							next_state= scanid_page;
+							flag=FALSE;
+							break;
+						}
+					}
 			  	}
 
 		   	   }
@@ -107,138 +119,143 @@ int main () {
 
 
 
-		   case  scanid_page  :
+		   case  scanid_page:
 		   	   counter=0;
 			   CheckingID(counter);
-			   // THE FIRST SHOULD HAVE A CLEAN THEN WHILE UNTIL WE GET SOMETHING FROM THE API
-			   flag=TRUE;
-			   next_state= scanid_page;
-			   while(flag){
-			   	counter++;
-			   	CheckingID(counter);
-			   	for(int i=0;i<1200000;i++){
-			   		;
-			   		// check for the api while we do busy waiting
-			   		// obtain the user id, credits
-			   		// can loop
-			   	}
-			   	WaitForTouch(touch_conf);
-		        WaitForReleased(touch_conf);
-		        // just for demo purposes
-			   	if(counter==8){
-			   	next_state= picktype_page;
-			   	flag=FALSE;
-			   	counter=0;}
+			   err = scan_id(pi_conf, &customer);
+			   // LOWPRIORITY TODO background thread to display loading stuff
+			   if (err) {
+				   // TODO 2 error states, one for failed to scan ID, one for invalid customer (too young, not registered etc...)
+				   next_state = error_page;
+				   printf("SCAN ID ERROR\n");
+				   break;
+			   }
 
-				}
+			   // Successfully scanned ID and got customer, get inventory now
+			   // TODO this is a memory leak, we must deallocate this pointer
+			   err = get_inventory(pi_conf, MACHINE_ID, &inventory, &inventoryLen);
+			   if (err) {
+				   // Internet connection failed
+				   // Could be DB, Server, serial or Internet connection
+				   printf("DB/SERVER/SERIAL/INTERNET CONN ERROR\n");
+				   next_state = error_page;
+				   break;
+			   }
 
+			   // Successfully scanned a valid customer, AND got the vending machine inventory from the DB
+			   next_state = picktype_page;
 			   break;
-		   case  error_page  :
-		 		ErrorID();
-		 	    next_state= picktype_page;
-		 	    break;
+		   case  error_page:
+			   // TODO loop and wait for button press before
+		 	   ErrorID();
+		 	   next_state = main_page;
+		 	   break;
 		   case picktype_page:
 		   	   amount_to_pay=0;
-			   PickType(amount_to_pay);
-			   flag=TRUE;
-			   amount_cigar=0;
-			   amount_beers=0;
-			   amount_weed=0;
+			   PickType(&customer, inventory, inventoryLen);
+			   flag = TRUE;
+			   for (int i = 0; i < inventoryLen; i++) {
+				   quantities[i] = 0;
+			   }
 			   while(flag){
-			   		  amount_to_pay++;
-	                  WaitForTouch(touch_conf);
-				      WaitForReleased(touch_conf);
-			       	  touch=  GetPress(touch_conf);
-			          printf("x axis: %d", touch.x);
-				      printf(" y axis: %d\n", touch.y);
-				      // check if the touch was the pay button
-				      if ( IsInBox(touch.x,touch.y,  670,160, 755, 258)){
-					    next_state= payment_page;
-					    flag=FALSE;
-				    	break;
-			        	}
-			        	// check for plus beer
-			        	// upper left , bottom right
-			        else if (IsInBox(touch.x,touch.y,  240,327, 305, 357)){
-			        	new_amountPay=amount_cigar*price_cigars + amount_weed*price_weed+ (amount_beers+1)*price_beer;
-			        	if(amount_beers!=9 && new_amountPay <= current_credits && (amount_beers+1)<=beers_stock)
-			        		amount_beers++;
-			        }
-			        	// check for minus beer
+	               WaitForTouch(touch_conf);
+				   WaitForReleased(touch_conf);
+			       touch = GetPress(touch_conf);
+			       printf("x axis: %d", touch.x);
+				   printf(" y axis: %d\n", touch.y);
 
-			        else if(IsInBox(touch.x,touch.y,  270,409, 310, 447)){
-			        	if(amount_beers!=0)
-			        		amount_beers--;
-			        }
-			        	// check for plus weed
+				   // Check for +/- item presses
+				   for (int i = 0; i < inventoryLen; i++){
+					   int dy = 140*i;
+					   if (IsInBox(touch.x,touch.y, 215 + dy, 335, 320 + dy, 365)) {
+						   printf("isIn +[%d]\n", i);
+						   if (quantities[i] < 9 && quantities[i] < inventory[i].quantity) {
+							   quantities[i]++;
+						   }
+					   } else if (IsInBox(touch.x,touch.y, 215 + dy, 410, 320 + dy, 440)) {
+						   printf("isIn -[%d]\n", i);
+						   if (quantities[i] > 0) {
+							   quantities[i]--;
+						   }
+					   }
+				   }
 
-			        else if (IsInBox(touch.x,touch.y,  370,328, 440, 360)){
-			        	new_amountPay=amount_cigar*price_cigars + (amount_weed+1)*price_weed+ (amount_beers)*price_beer;
-			        	if(amount_weed!=9 && new_amountPay <= current_credits && (amount_weed+1)<=weed_stock)
-			        		amount_weed++;
-			        }
-			        	// check for minus weed
-
-			        else if(IsInBox(touch.x,touch.y,  380,410, 445, 440)){
-			        	if(amount_weed!=0)
-			        		amount_weed--;
-			        }
-			        	// check for plus cigars
-
-			        else if (IsInBox(touch.x,touch.y,  518,330, 583, 360)){
-			        	new_amountPay=(amount_cigar+1)*price_cigars + amount_weed*price_weed+ (amount_beers)*price_beer;
-			        	if(amount_cigar!=9 && new_amountPay <= current_credits && (amount_cigar+1)<=cigar_stock)
-			        		amount_cigar++;
-			        }
-			        	// check for minus cigars
-			        else if(IsInBox(touch.x,touch.y,  515,409, 560, 440)){
-			        	if(amount_cigar!=0)
-			        		amount_cigar--;
-			        }
-			        // check for the log out button
-			        else if(IsInBox(touch.x,touch.y,  690,20, 750, 130)){
-			        	next_state=main_page;
-			        	flag=FALSE;
-				    	break;
-			        }
-			        amount_to_pay= amount_cigar*price_cigars + amount_weed*price_weed+ amount_beers*price_beer;
-			        PickTypeUpdate(amount_to_pay, amount_beers, amount_weed, amount_cigar);
-			    }
+				   // check if the touch was the pay button
+				   if ( IsInBox(touch.x,touch.y,  670,160, 755, 258)){
+					   amount_to_pay = 0;
+					   for (int i = 0; i < inventoryLen; i++) {
+						   amount_to_pay += inventory[i].price * quantities[i];
+					   }
+					   if (amount_to_pay > 0 && amount_to_pay < customer.credits) {
+						   next_state = payment_page;
+						   flag = FALSE;
+						   break;
+					   }
+			       }
+			       // check for the log out button
+			       else if(IsInBox(touch.x,touch.y,  690,20, 750, 130)){
+			           next_state=main_page;
+			           flag=FALSE;
+				       break;
+			       }
+			       amount_to_pay = 0;
+			       for (int i = 0; i < inventoryLen; i++) {
+			           amount_to_pay += inventory[i].price * quantities[i];
+			       }
+			       PickTypeUpdate(amount_to_pay, quantities, inventoryLen);
+			   }
 			   break;
 
 		   case payment_page:
 			   Payment(amount_to_pay);
-			   next_state= dispense_page;
-			   flag=TRUE;
+			   next_state = payment_confirmation_page;
+			   flag = TRUE;
 			   while(flag){
-	                  WaitForTouch(touch_conf);
-				      WaitForReleased(touch_conf);
-			       	  touch=  GetPress(touch_conf);
-			          printf("x axis: %d", touch.x);
-				      printf(" y axis: %d\n", touch.y);
-				      // check if the touch was the pay button
-				      if ( IsInBox(touch.x,touch.y,  610,80, 680, 380)){
-					    next_state= dispense_page;
-					    flag=FALSE;
-				    	break;
-			        	}
+	               WaitForTouch(touch_conf);
+				   WaitForReleased(touch_conf);
+			       touch = GetPress(touch_conf);
+			       printf("x axis: %d", touch.x);
+				   printf(" y axis: %d\n", touch.y);
+				   // check if the touch was the pay button
+				   if ( IsInBox(touch.x,touch.y,  610,80, 680, 380)){
+				       next_state = payment_confirmation_page;
+					   flag=FALSE;
+				       break;
+			       }
 			   }
-			   break;
+               break;
 
+		   case payment_confirmation_page:
+			   CheckingID(counter);
+			   int purchases [64] = {-1};
+			   int purchasesLen = 0;
+			   int newBalance;
+			   for (int i = 0; i < inventoryLen; i++) {
+				   for (int j = 0; j < quantities[i]; j++) {
+					   purchases[purchasesLen] = inventory[i].stock_id;
+					   purchasesLen += 1;
+				   }
+			   }
+			   err = make_purchase(pi_conf, MACHINE_ID, customer.ID, purchases, purchasesLen, &newBalance);
+			   if (err) {
+				   printf("MAKE PURCHASE ERROR\n");
+				   next_state = error_page;
+				   break;
+			   }
+			   customer.credits = newBalance;
+			   next_state = dispense_page;
+			   break;
 		   case dispense_page:
 			   Dispense();
-			   if(picked == beer)
-				   Run_Motors(1, motor_conf);
-			   else if (picked== weed)
-				   Run_Motors(2, motor_conf);
-			   else {
-				   Run_Motors(1, motor_conf);
-				   Run_Motors(2, motor_conf);
+			   for (int i = 0; i < inventoryLen; i++) {
+				   for (int j = 0; j < quantities[i]; j++) {
+					   Run_Motors(i, motor_conf);
+				   }
 			   }
-			   next_state= complete_page;
+			   next_state = complete_page;
 			   break;
 		   case complete_page:
-			   Complete();
+			   Complete(customer.credits);
 			   next_state= main_page;
 			   WaitForTouch(touch_conf);
 		       WaitForReleased(touch_conf);

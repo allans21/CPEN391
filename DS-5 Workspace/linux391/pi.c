@@ -54,6 +54,7 @@ int read_response(SerialConf *sc, char *buf) {
 	while (c != '{' && c != '[') {
 		c = getchar_uart(sc);
 	}
+	printf("read start char %c\n", c);
 	char startChar = c;
 	char stopChar = c == '{' ? '}' : ']';
 	int stack = 1;
@@ -145,7 +146,7 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 	}
 
 	int i = 0;
-	Inventory *inventory = malloc(sizeof(Inventory)*len);
+	Inventory *inventory = malloc(sizeof(Inventory) * (int)(*length));
 
 	// Parse data
 	cJSON_ArrayForEach(item, inventoryArray)
@@ -174,7 +175,7 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 		inventory[slotIdx].name = strdup(name->valuestring);
 		inventory[slotIdx].slot = slot->valueint;
 		inventory[slotIdx].price = price->valueint;
-		inventory[slotIdx].stock_id = quantity->valueint;
+		inventory[slotIdx].stock_id = stock_id->valueint;
 		inventory[slotIdx].quantity = quantity->valueint;
 		i++;
 	}
@@ -203,7 +204,7 @@ int make_purchase(SerialConf *sc, int machine_id, int customer_id, int *purchase
 	printf("%s\n", response);
 
 	cJSON *json = cJSON_Parse(response);
-	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newBalance");
+	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newCredit");
 	if (!jsonNewBal || !cJSON_IsNumber(jsonNewBal)) {
 		cJSON_Delete(json);
 		return 1;

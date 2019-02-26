@@ -51,8 +51,8 @@ SerialConf * Init_Touch(void * virtual_base)
 	line_control_register = *(sc->LineControlReg);
 	line_control_register = line_control_register |  0x80;
 	*(sc->LineControlReg) = line_control_register;
-	*(sc->DivisorLatchLSB) = 0x1B;
-	*(sc->DivisorLatchMSB) = 0x00;
+	*(sc->DivisorLatchLSB) = 0x45;
+	*(sc->DivisorLatchMSB) = 0x01;
 	// set bit 7 of Line control register back to 0 and
 	// program other bits in that reg for 8 bit data,
 	// 1 stop bit, no parity etc
@@ -250,9 +250,13 @@ SerialConf * Init_Motors(void * virtual_base){
 }
 
 void Run_Motors(int motor, SerialConf *sc){
-	if(motor == 1)
+	if(motor == 0)
 		putchar_uart(97,  sc);
-	else if(motor == 2)
+	else if(motor == 1)
 		putchar_uart(98, sc);
+
+	// TODO wait for confirmation of dispense
+	for (int i = 0; i < 7000000; i++) {}
+	printf("Dispensing from motor #%d\n", motor);
 }
 

@@ -4437,15 +4437,17 @@ void ErrorID(){
     PrintString(str, 20, 180, 200, BACKGROUND, FONT);
 }
 
-void PickType(int amount){
+void PickType(Customer *c, Inventory * inventoryList, int inventoryLen){
 
     ClearScreen(BACKGROUND);
    // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
 
-    char str[] = "Username: Cristian Brazales";
-    Button(600, 50, 300, 25, LIME, BLACK,YELLOW , str,20);
-    char str4[] = "CR: 50";
-    Button(200, 50, 700, 25, LIME, BLACK,YELLOW , str4, 7);
+    char uname_buf[256];
+	int uname_buflen = sprintf(uname_buf, "Hi %s!", c->name);
+    Button(500, 50, 250, 25, LIME, BLACK,YELLOW , uname_buf, uname_buflen);
+    char credit_buf[256];
+	int credit_buflen = sprintf(credit_buf, "CR %d", c->credits);
+    Button(300, 50, 650, 25, LIME, BLACK,YELLOW , credit_buf, credit_buflen);
     char str5[] = "Log Out";
     Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
     char str6[] = "Pay";
@@ -4453,68 +4455,73 @@ void PickType(int amount){
     char str7[] = "Total:";
     Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
 
-   int y = amount % 10;
-    char fir = (char) 48 + y;
-    amount -= y;
-    y = (amount % 100) / 10;
-    char sec = (char) 48 + y;
-    amount -= y*10;
-    y = (amount % 1000) / 100;
-    char thir = (char) 48 + y;
-    amount -= y*100;
-    y = (amount % 10000) / 1000;
-    char forth = (char) 48 + y;
-    amount -= y*1000;
-    char chr[] = {'$', fir, sec, '.', thir, forth};
+    char total_buf[16];
+	int total_buflen = sprintf(total_buf, "%d", 0);
+    Button(140, 50, 680, 450, LIME, BLACK, WHITE, total_buf, total_buflen);
 
-    Button(140, 50, 680, 450, LIME, BLACK, WHITE ,chr , 6);
+    for (int i = 0; i < inventoryLen; i++) {
+    	int dy = 90 * i;
+    	 // beer
+    	char name_buf[32];
+		int name_buflen = sprintf(name_buf, "%s", inventoryList[i].name);
+    	Button(350, 60, 200, 150 + dy, BUTTONCOL, BLACK, BUTTONFONT, name_buf, name_buflen);
+		// plus
+		FilledRectangle(585, 595,130 + dy,170 + dy, RED);
 
-    // beer 
-    char str1[] = "Beer";
+		FilledRectangle(565, 615, 145 + dy, 155 + dy, RED);
+		//  minus
+		FilledRectangle(705, 745, 145 + dy, 155 + dy, BLACK);
+		// string amount of beer
+		char num_beer[] ="0" ;
+		PrintString(num_beer, 1, 635, 130 + dy, BUTTONCOL, BLACK);
+    }
 
-
-    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
-    // plus 
-    FilledRectangle(585, 595,130,170,RED);
-
-    FilledRectangle(565, 615,145,155,RED);
-    //  minus
-    FilledRectangle(705, 745,145,155,BLACK);
-    // string amount of beer
-    char num_beer[] ="0" ;
-    PrintString(num_beer, 1, 635, 130, BUTTONCOL, BLACK);
-
-
-    char str2[] = "Weed";
-    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
-      // plus 
-    FilledRectangle(585, 595,220,260,RED);
-
-    FilledRectangle(565, 615,235,245,RED);
-    //  minus
-    FilledRectangle(705, 745,235,245,BLACK);
-    /// string for amount 
-    char num_weed[] ="0" ;
-    PrintString(num_weed, 1, 635, 220, BUTTONCOL, BLACK);
-
-
-
-    char str3[] = "Cigarettes";
-    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-         // plus 
-    FilledRectangle(585, 595,310,350,RED);
-
-    FilledRectangle(565, 615,325,335,RED);
-    //  minus
-    FilledRectangle(705, 745,325,335,BLACK);
-    // string cigarrets
-    char num_cigar[] ="0" ;
-    PrintString(num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
+//    // beer
+//	char str1[] = "Beer";
+//
+//    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
+//    // plus
+//    FilledRectangle(585, 595,130,170,RED);
+//
+//    FilledRectangle(565, 615,145,155,RED);
+//    //  minus
+//    FilledRectangle(705, 745,145,155,BLACK);
+//    // string amount of beer
+//    char num_beer[] ="0" ;
+//    PrintString(num_beer, 1, 635, 130, BUTTONCOL, BLACK);
+//
+//
+//    char str2[] = "Weed";
+//    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
+//      // plus
+//    FilledRectangle(585, 595,220,260,RED);
+//
+//    FilledRectangle(565, 615,235,245,RED);
+//    //  minus
+//    FilledRectangle(705, 745,235,245,BLACK);
+//    /// string for amount
+//    char num_weed[] ="0" ;
+//    PrintString(num_weed, 1, 635, 220, BUTTONCOL, BLACK);
+//
+//
+//
+//    char str3[] = "Cigarettes";
+//    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
+//         // plus
+//    FilledRectangle(585, 595,310,350,RED);
+//
+//    FilledRectangle(565, 615,325,335,RED);
+//    //  minus
+//    FilledRectangle(705, 745,325,335,BLACK);
+//    // string cigarrets
+//    char num_cigar[] ="0" ;
+//    PrintString(num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
 
 
 
 }
-void PickTypeUpdate(int amount, int beer, int weed, int cigar){
+
+void PickTypeUpdate(int amount, int *quantities, int numItems){
    // prints the total amount
     //ClearScreen(BACKGROUND);
 /*
@@ -4572,34 +4579,28 @@ void PickTypeUpdate(int amount, int beer, int weed, int cigar){
     FilledRectangle(616, 704,130,350,BACKGROUND);
 
     ////
-   int y = amount % 10;
-    char fir = (char) 48 + y;
-    amount -= y;
-    y = (amount % 100) / 10;
-    char sec = (char) 48 + y;
-    amount -= y*10;
-    y = (amount % 1000) / 100;
-    char thir = (char) 48 + y;
-    amount -= y*100;
-    y = (amount % 10000) / 1000;
-    char forth = (char) 48 + y;
-    amount -= y*1000;
-    char chr[] = {'$', fir, sec, '.', thir, forth};
+    char total_buf[16];
+	int total_buflen = sprintf(total_buf, "%d", amount);
+    Button(140, 50, 680, 450, LIME, BLACK, WHITE, total_buf, total_buflen);
 
-    Button(140, 50, 680, 450, LIME, BLACK, WHITE ,chr , 6);
+
+    Button(140, 50, 680, 450, LIME, BLACK, WHITE , total_buf, total_buflen);
     // prints the number of each thing
-    char num_weed =(char) 48 + weed;
-    PrintString(&num_weed, 1, 635, 220, BUTTONCOL, BLACK);
-
-    char num_cigar =(char) 48 + cigar;
-    PrintString(&num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
-
-    char num_beer =(char) 48 + beer;
-    PrintString(&num_beer, 1, 635, 130, BUTTONCOL, BLACK);
-
-
-
+    for (int i = 0; i < numItems; i++) {
+    	int dy = 90 * i;
+    	char num_weed =(char) '0' + quantities[i];
+		PrintString(&num_weed, 1, 635, 130 + dy, BUTTONCOL, BLACK);
+    }
+//    char num_weed =(char) '0' + weed;
+//    PrintString(&num_weed, 1, 635, 220, BUTTONCOL, BLACK);
+//
+//    char num_cigar =(char) '0' + cigar;
+//    PrintString(&num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
+//
+//    char num_beer =(char) '0' + beer;
+//    PrintString(&num_beer, 1, 635, 130, BUTTONCOL, BLACK);
 }
+
 void Dispense(){
 
     ClearScreen(BACKGROUND);
@@ -4612,34 +4613,22 @@ void Dispense(){
 
 
 //x is the amount the customer needs to pay 1234 = $12.34
-void Payment(int x){
+void Payment(int totalCost){
     ClearScreen(BACKGROUND);
 
-    int y = x % 10;
-    char fir = (char) 48 + y;
-    x -= y;
-    y = (x % 100) / 10;
-    char sec = (char) 48 + y;
-    x -= y*10;
-    y = (x % 1000) / 100;
-    char thir = (char) 48 + y;
-    x -= y*100;
-    y = (x % 10000) / 1000;
-    char forth = (char) 48 + y;
-    x -= y*1000;
-
-    char str1[] = {'Y', 'o', 'u', 'r', ' ', 't', 'o', 't', 'a', 'l', ' ', 'i', 's', ':'};
-    char chr[] = {'$', fir, sec, '.', thir, forth};
+    char *str1 = "Your total is:";
+    char total_buf[64];
+	int total_buflen = sprintf(total_buf, "%d credits", totalCost);
 
     PrintString(str1, 14, 246, 100, BACKGROUND, FONT);
-    PrintString(chr, 6, 334, 200, BACKGROUND, FONT);
+    PrintString(total_buf, total_buflen, 246, 200, BACKGROUND, FONT);
 
-     char str4[] = "  Press to confirm";
-       Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
+    char str4[] = "  Press to confirm";
+    Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
 
 }
 
-void Complete(){
+void Complete(int newBalance){
 
     ClearScreen(BACKGROUND);
 
@@ -4649,6 +4638,10 @@ void Complete(){
 
     char str[] = "Have a good day! =)";
     PrintString(str, 20, 180, 200, BACKGROUND, FONT);
+
+	char newbal_buf[128];
+	int newbal_buflen = sprintf(newbal_buf, "Your new balance is %d credits", newBalance);
+	PrintString(newbal_buf, 20, 180, 250, BACKGROUND, FONT);
 
     /*
     char str3[] = "Cigarettes";
