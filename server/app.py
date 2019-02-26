@@ -11,6 +11,7 @@ from werkzeug.routing import BaseConverter
 import db.utils
 import db.stock
 import db.customer
+import db.products
 app = Flask(__name__)
 
 def user_id2access_token(user_id):
@@ -126,10 +127,38 @@ def put_purchase():
     if 'user_id' not in request.form:
         return 'No userId', 400
     
-    if 'item_id' not in request.form:
-        return 'No itemId', 4000
+    if 'item_ids' not in request.form:
+        return 'No itemIds', 400
+    if 'machine_id' not in request.form:
+        return ' No machinesId', 400
 
     user_id = request.form['user_id']
-    item_id = request.form['item_id']
+    item_ids = request.form.getlist('item_ids')
+    machine_id = request.form['machine_id']
     db_conn = db.utils.get_connection()
-    return json.dumps([])
+
+    remainingCredits= db.customer.getCredits(db_conn, user_id)
+    print(remainingCredits)
+    totalCredits=0
+    for item_id in item_ids: 
+        if(db.stock.getStockById(db_conn,item_id,machine_id)==0):
+            return 'no enough stock', 400
+        totalCredits = totalCredits + db.products.getPrice(db_conn,item_id)
+        print(item_id)
+
+    print(totalCredits)    
+    
+    if(totalCredits > remainingCredits):
+        return 'Too Many Items', 400
+    else:
+        newCredit = remainingCredits - totalCredits
+        print(newCredit)
+        for item_id in item_ids:
+            db.stock.updateStock(db_conn,item_id, machine_id)
+        for item_id in item_ids:
+            print(db.stock.getStockById(db_conn,item_id,machine_id))
+        db.customer.updateCredits(db_conn, user_id, newCredit)
+        print(db.customer.getCredits(db_conn, user_id))
+    data = {}
+    data['newCredit'] = newCredit
+    return json.dumps(data)

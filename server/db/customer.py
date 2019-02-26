@@ -24,3 +24,17 @@ def getCustomerByBarcode(db_conn, barcode_id):
     for row in curs:
         return Customer(*row)
 
+def getCredits(db_conn, id):
+    query = """SELECT CREDITS
+                   FROM CUSTOMERS WHERE ID=%s"""
+    curs = db_conn.cursor()
+    curs.execute(query, [id])
+    for row in curs:
+        return row[0]
+def updateCredits(db_conn, id, newValue):
+    print(newValue)
+    query = """UPDATE CUSTOMERS SET CREDITS = %s WHERE ID = %s"""
+    curs = db_conn.cursor()
+    curs.execute(query, [newValue, id])
+    db_conn.commit()
+
