@@ -4,20 +4,20 @@
 
 {% block content %}
 	<div class="row">
-		<form>
+		<form id=signup-form action="/signup" method="POST">
 			<div class="col-md-6">
 				<div class="row">	
 					<div class="col-md-1"></div>
 					<div class="col-md-8">
 							<label for="newemail">Enter your Email</label>
-						<input type="text" class="form-control" id="newemail" placeholder="Example@gmail.com">
+						<input type="text" class="form-control" id="newemail" name="newemail" placeholder="Example@gmail.com">
 					</div>
 				</div><br>
 				<div class="row">
 					<div class="col-md-1"></div>
 					<div class="col-md-8">
 						<label for="newpassword">Enter a Password</label>
-						<input type="text" class="form-control" id="newpassword" placeholder="Password">
+						<input type="text" class="form-control" id="newpassword" name="newpassword" placeholder="Password">
 					</div>
 				</div><br>
 
@@ -25,7 +25,7 @@
 					<div class="col-md-1"></div>
 					<div class="col-md-8">
 						<label for="newphone">Enter your Phone Number</label>
-						<input type="text" class="form-control" id="newphone" placeholder="2501234567">
+						<input type="text" class="form-control" id="newphone" name="newphone" placeholder="2501234567">
 					</div>
 				</div><br>
 
@@ -33,7 +33,28 @@
 					<div class="col-md-1"></div>
 					<div class="col-md-8">
 						<label for="newID">Enter your ID Code (See picture for location)</label>
-						<input type="text" class="form-control" id="newID" placeholder="M28345345">
+						<input type="text" class="form-control" id="newID" name="newID" placeholder="M28345345">
+					</div>
+				</div><br>
+				<div class="row">	
+					<div class="col-md-1"></div>
+					<div class="col-md-8">
+						<label for="newAddress">Enter your Address</label>
+						<input type="text" class="form-control" id="newAddress" name="newAddress" placeholder="123 Example St.">
+					</div>
+				</div><br>
+				<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+							<label for="newname">Enter your Full Name</label>
+							<input type="text" class="form-control" id="newName" name="newName" placeholder="Chad Chadley">
+						</div>
+					</div><br>
+				<div class="row">	
+					<div class="col-md-1"></div>
+					<div class="col-md-8">
+						<label for="newCard">Enter your Credit Card number</label>
+						<input type="text" class="form-control" id="newCard" name="newCard" placeholder="1234123412341234">
 					</div>
 				</div><br>
 				<div class="row">	

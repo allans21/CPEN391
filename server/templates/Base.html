@@ -10,7 +10,11 @@
     <title>{% block title %}{% endblock %} - VendKush Machine</title>
 </head>
 <body>
-	{% include 'Navbar.html' %}
+	{% if user %}
+		{% include 'NavbarLogged.html'%}
+	{% else %}
+		{% include 'Navbar.html' %}
+	{% endif %}
 	<script src="events.js"></script>	<!-- Latest compiled and minified JavaScript -->
 	<script
 		src="https://code.jquery.com/jquery-3.3.1.min.js"
