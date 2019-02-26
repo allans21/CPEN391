@@ -4,7 +4,143 @@
 
 {% block content %}
 	{% if user %}
-		<h3>Hi {{user.name}} (#{{user.id}}), you have {{user.credits}} credits. </h3>
+		<h3 style="padding-left:1em">Hi {{user.name}}, the following is your information which you can change at any time. <br><br></h3>
+		<div class="row">
+			<form id=update-name action="/update-name" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-name">Current Name: {{user.name}}</label>
+							<input type="text" class="form-control" id="updname" name="updname" placeholder="Chad Chadley">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatename">Update Name</button>
+					</div>
+				</div>
+			</form>
+			<form id=update-email action="/update-email" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-email">Current Email: {{user.email}}</label>
+							<input type="text" class="form-control" id="updemail" name="updemail" placeholder="Example@gmail.com">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updateemail">Update Email</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<br><br>
+		<div class="row">
+			<form id=update-address action="/update-address" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-address">Current Address: {{user.address}}</label>
+							<input type="text" class="form-control" id="updaddress" name="updaddress" placeholder="123 Example St.">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updateaddress">Update Address</button>
+					</div>
+				</div>
+			</form>
+			<form id=update-dlID action="/update-dlID" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-dlID">Current Driver License ID: {{user.dlID}}</label>
+							<input type="text" class="form-control" id="upddlID" name="upddlID" placeholder="M12345678">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatedlID">Update Driver License ID</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<br><br>
+		<div class="row">
+			<form id=update-phone action="/update-phone" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-phone">Current Phone Number: {{user.phone}}</label>
+							<input type="text" class="form-control" id="updphone" name="updphone" placeholder="2501234567">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatephone">Update Phone Number</button>
+					</div>
+				</div>
+			</form>
+			<form id=update-pass action="/update-pass" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-pass">Current Password: {{user.password}}</label>
+							<input type="text" class="form-control" id="updpass" name="updpass" placeholder="SecretPassword123!">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatepass">Update Password</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<br><br>
+		<div class="row">
+			<form id=update-card action="/update-card" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+								<label for="upd-card">Current Credit Card: {{user.cardNum}}</label>
+							<input type="text" class="form-control" id="updcard" name="updcard" placeholder="1234567812345678">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatecard">Update Credit Card</button>
+					</div>
+				</div>
+			</form>
+		</div>
+
+
+		<br><br><br><br><br><br>
+		<h3 style="padding-left:1em">You have {{user.credits}} credits, you can add more credits below! </h3>
+		<div class="row">
+			<form id=update-credits action="/update-credits" method="POST">
+				<div class="col-md-6">
+					<div class="row">	
+						<div class="col-md-1"></div>
+						<div class="col-md-8">
+							<label for="upd-credits">Enter how many credits you wish to add:</label>
+							<input type="text" class="form-control" id="updcredits" name="updcredits" placeholder="4000">
+						</div>
+					</div><br>
+					<div class="row">	
+						<div class="col-md-7"></div>
+						<button type="submit" class="btn btn-primary" id="updatecredits">Add Credits</button>
+					</div>
+				</div>
+			</form>
 	{% else %}
 		<h3>You are not logged in. You must login to view your account.</h3>
 	{% endif %}
