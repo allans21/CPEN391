@@ -177,32 +177,6 @@ Point GetRelease(SerialConf *sc)
   return p1;
 }
 
-void Init_RS232(void)
-{
-
-// set bit 7 of Line Control Register to 1, to gain access to the baud rate registers
-unsigned char line_control_register;
-line_control_register= *RS232_LineControlReg;
-line_control_register = line_control_register |  0x80;
-*RS232_LineControlReg= line_control_register;
- // set Divisor latch (LSB and MSB) with correct value for required baud rate
-// example 0x0145
-// *Bluetooth_DivisorLatchLSB =0x1B;
-// *Bluetooth_DivisorLatchMSB =0x00;
-// *RS232_DivisorLatchLSB =0x45;
-// *RS232_DivisorLatchMSB =0x01;
- *RS232_DivisorLatchLSB = 0x1B;
- *RS232_DivisorLatchMSB = 0x00;
- // set bit 7 of Line control register back to 0 and
- // program other bits in that reg for 8 bit data,
- // 1 stop bit, no parity etc
- //0000 0011
- *RS232_LineControlReg= 0x03;
- // Reset the Fifoâ€™s in the FiFo Control Reg by setting bits 1 & 2
-*RS232_FifoControlReg = *RS232_FifoControlReg | 0x06;
- // Now Clear all bits in the FiFo control registers
-*RS232_FifoControlReg = *RS232_FifoControlReg ^  0x06;
-}
 /// motors functions
 
 SerialConf * Init_Motors(void * virtual_base){
@@ -233,7 +207,6 @@ SerialConf * Init_Motors(void * virtual_base){
 	return sc;
 
 /*
-	// TODO MEMORY MAP THIS
 	//hijacking the Buetooth serial because we are not using that for now
 	unsigned char line_control_register = *Bluetooth_LineControlReg;
 	line_control_register = line_control_register | 0x80;
@@ -251,12 +224,14 @@ SerialConf * Init_Motors(void * virtual_base){
 
 void Run_Motors(int motor, SerialConf *sc){
 	if(motor == 0)
-		putchar_uart(97,  sc);
+		putchar_uart('a',  sc);
 	else if(motor == 1)
-		putchar_uart(98, sc);
+		putchar_uart('b', sc);
 
 	// TODO wait for confirmation of dispense
 	for (int i = 0; i < 7000000; i++) {}
 	printf("Dispensing from motor #%d\n", motor);
+
+	while(getchar_uart(sc) != 'D'){}
 }
 

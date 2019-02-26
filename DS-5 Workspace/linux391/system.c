@@ -22,6 +22,10 @@
 #include "virtualfuck.h"
 #include "serial_ports.h"
 #include "screenfunctions.h"
+#include "wifi.h"
+#include "pi.h"
+#include "serial.h"
+#include "appObjects.h"
 
 enum state{
 	main_page,
@@ -34,8 +38,6 @@ enum state{
 	complete_page,
 	payment_confirmation_page
 };
-
-enum item{beer,weed,cigars};
 
 volatile int virtual_base;
 int main () {
@@ -59,17 +61,19 @@ int main () {
 
 
 	enum state next_state;
-	next_state=main_page;
-	enum item picked;
-	picked = beer;
-	int colour_welcome=0;
-	int counter=0;
+	next_state = main_page;
+	int colour_welcome = 0;
+	int counter = 0;
 	SerialConf * touch_conf = Init_Touch(virtual_base); // TODO get real virtual base
 	SerialConf * motor_conf = Init_Motors(virtual_base);
+
+	Run_Motors(0, motor_conf);
+	Run_Motors(0, motor_conf);
+	Run_Motors(1, motor_conf);
+	Run_Motors(1, motor_conf);
+
 	SerialConf * pi_conf    = Init_Pi(virtual_base);
-//	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
-
-
+	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
 
     int amount_to_pay=0;
     int valid;
@@ -121,7 +125,7 @@ int main () {
 
 		   case  scanid_page:
 		   	   counter=0;
-			   CheckingID(counter);
+			   CheckingID(counter, "   While Your I.D Is Verified    ", 34);
 			   err = scan_id(pi_conf, &customer);
 			   // LOWPRIORITY TODO background thread to display loading stuff
 			   if (err) {
@@ -148,6 +152,25 @@ int main () {
 		   case  error_page:
 			   // TODO loop and wait for button press before
 		 	   ErrorID();
+
+			   //loops here until the screen has been touched;
+
+			  	for(int i=0;i<700000;i++){
+			  	 	if( ScreenTouched(touch_conf) ){
+						WaitForReleased(touch_conf);
+						touch=  GetRelease(touch_conf);
+						printf("x axis: %d", touch.x);
+						printf("  y axis: %d\n", touch.y);
+						if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
+							/// read the status of the vending machine
+							next_state= scanid_page;
+							flag=FALSE;
+							break;
+						}
+					}
+			  	}
+
+
 		 	   next_state = main_page;
 		 	   break;
 		   case picktype_page:
@@ -226,7 +249,7 @@ int main () {
                break;
 
 		   case payment_confirmation_page:
-			   CheckingID(counter);
+			   CheckingID(counter, "While Your Payment Is Processed", 37);
 			   int purchases [64] = {-1};
 			   int purchasesLen = 0;
 			   int newBalance;
@@ -243,6 +266,24 @@ int main () {
 				   break;
 			   }
 			   customer.credits = newBalance;
+
+			   char sms_body[4096] = "";
+			   char * res = strcat(sms_body, "Thank you for your purchase!\n");
+			   printf("sms_body=%h res=%h\n", sms_body, res);
+
+			   char exec_buf[128];
+
+			   for (int i = 0; i < inventoryLen; i++) {
+				   if (quantities[i] > 0){
+					   sprintf(exec_buf, "%d %s\n", quantities[i], inventory[i].name);
+					   res = strcat(sms_body, exec_buf);
+				   }
+			   }
+
+			   sprintf(exec_buf, "Your new balance is %d credits", newBalance);
+			   res = strcat(sms_body, exec_buf);
+			   send_sms(wifi_conf, "(778) 866-2529", sms_body);
+
 			   next_state = dispense_page;
 			   break;
 		   case dispense_page:

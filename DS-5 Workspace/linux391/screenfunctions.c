@@ -4379,19 +4379,19 @@ void StartingScreen(int colour){
 
 }
 
-void CheckingID(int counter){
+void CheckingID(int counter, char* txt, int length){
    
     if(counter%7==0){
          ClearScreen(BACKGROUND);
-    char str1[] = "Please wait a moment";
-    PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
+         char str1[] = "Please wait a moment";
+         PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
 
-    char str[] = "while your I.D is verified";
-    PrintString(str, 27, 103, 200, BACKGROUND, FONT);
+         PrintString(txt, length,103-(length),200,BACKGROUND, FONT);
+         /*char str[] = "while your I.D is verified";
+         PrintString(str, 27, 103, 200, BACKGROUND, FONT);*/
 
-
-     char str2[] = "Loading   ";
-    PrintString(str2, 10, 100, 400, BACKGROUND, FONT);
+         char str2[] = "Loading   ";
+         PrintString(str2, 10, 100, 400, BACKGROUND, FONT);
     }
     
     switch(counter%7) {
@@ -4435,6 +4435,9 @@ void ErrorID(){
 
     char str[] = "processing your I.D.";
     PrintString(str, 20, 180, 200, BACKGROUND, FONT);
+
+    char str4[] = "  Press to Restart ";
+    Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
 }
 
 void PickType(Customer *c, Inventory * inventoryList, int inventoryLen){

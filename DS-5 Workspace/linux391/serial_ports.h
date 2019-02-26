@@ -85,7 +85,6 @@ Point GetRelease(SerialConf *);
 Point GetPress(SerialConf *);
 void WaitForTouch(SerialConf *);
 void WaitForReleased(SerialConf *);
-void Init_RS232(void);
 
 // Motors
 SerialConf* Init_Motors(void*);

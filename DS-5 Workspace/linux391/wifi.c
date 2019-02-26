@@ -67,61 +67,14 @@ SerialConf* Init_WiFi(void *virtual_base)
 	return sc;
 }
 
-
-
-//int _main() {
-//	Init_WiFi();
-//	char buf[1024] = "";
-//
-//	printf("Sending to dangle dongle\n");
-//	int res = exec_lua("dofile(\"send_text_message.lua\")", buf);
-//	printf("%s\n", buf);
-//
-//	char c;
-//	int got=0;
-//	char *expected = "connected";
-//	while (got < 9) {
-//		while(TestForReceivedData(RS232_LineStatusReg) != 1) {;}
-//		c = (char) getchar_uart(RS232_LineStatusReg, RS232_ReceiverFifo);
-//		printf("%c", c);
-//		if (c == expected[got]) {
-//			got += 1;
-//		}
-//	}
-//	printf("\n");
-//
-//	res = exec_lua("send_sms(\"(204) 818-9230\",\"(778) 866-2529\",\"WiFi Chip ON!\")", buf);
-//	printf("%s\n", buf);
-//
-//	while (1) {
-//		if(TestForReceivedData(RS232_LineStatusReg) == 1) {
-//			c = (char) getchar_uart(RS232_LineStatusReg, RS232_ReceiverFifo);
-//			printf("%c", c);
-//		}
-//	}
-//}
-
 int exec_lua(SerialConf *sc, char * str, char * res) {
-	int bytes_received = 0;
-//	printf("executing %s as a Lua command\n", str);
+	printf("exec_lua: %s\n", str);
 	while (*str) {
 		putchar_uart(*str, sc);
-
-//		while(TestForReceivedData(sc->LineStatusReg) == 1) {
-//			res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-//		}
 		str += 1;
 	}
 	putchar_uart('\n', sc);
-//	while(TestForReceivedData(sc->LineStatusReg) == 1) {
-//		res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-//	}
-//	while(TestForReceivedData(sc->LineStatusReg) == 1) {
-//		res[bytes_received++] = (char) getchar_uart(sc->LineStatusReg, sc->ReceiverFifo);
-//	}
-//	printf("Got %u bytes\n", bytes_received);
-	res[bytes_received] = '\0';
-	return bytes_received;
+	return 0;
 }
 
 void wait_for(SerialConf *sc, char *to_wait) {
@@ -138,3 +91,26 @@ void wait_for(SerialConf *sc, char *to_wait) {
 	}
 }
 
+int send_sms(SerialConf *sc, char * to, char * body) {
+	printf("Sending text: %s\n", body);
+	char exec_buf[256];
+	char body_buf[256-50];
+	int i, j;
+	for (i = 0, j = 0; body[i] && j < 256-50-1; i++, j++) {
+		if (body[i] == '\n'){
+			body_buf[j++] = '\\';
+			body_buf[j++] = 'r';
+			body_buf[j++] = '\\';
+			body_buf[j] = 'n';
+		} else {
+			body_buf[j] = body[i];
+		}
+	}
+	body_buf[j] = 0;
+	printf("Sending: %s\n", body_buf);
+	if (body[i]) {
+		printf("WARN: send_sms MESSAGE BODY TRUNCATED\n");
+	}
+	int execlen = sprintf(exec_buf, "send_sms(\"(204) 818-9230\",\"%s\", \"%s\")",to, body_buf);
+    exec_lua(sc, exec_buf, NULL);
+}

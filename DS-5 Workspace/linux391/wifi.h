@@ -6,5 +6,6 @@
 int exec_lua(SerialConf*, char*, char*);
 void wait_for(SerialConf *, char *);
 SerialConf *Init_WiFi(void*);
+int send_sms(SerialConf *sc, char * to, char * body);
 
 #endif
