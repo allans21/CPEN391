@@ -34,7 +34,7 @@ def updateStock(db_conn, product_id, vending_id):
     db_conn.commit()
 
 def getStockById(db_conn, product_id, vending_id):
-    query = """select QUANTITY from STOCK where VENDINGID=%s AND PRODUCTID - %s """
+    query = """select QUANTITY from STOCK where VENDINGID=%s AND PRODUCTID = %s """
     curs = db_conn.cursor()
     curs.execute(query, [vending_id, product_id])
     for row in curs:

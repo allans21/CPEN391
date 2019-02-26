@@ -35,7 +35,19 @@ def add_header(r):
 
 @app.route('/')
 def root():
-    return render_template('HomeScreen.html')
+    user = None;
+    access_token = request.cookies.get('access_token')
+    if access_token:
+        if(access_token == "40"):
+            user = None
+        else:        
+            db_conn = db.utils.get_connection()
+            customer = db.customer.getCustomerByID(db_conn, access_token)
+            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
+    else:
+        user = None
+
+    return render_template('HomeScreen.html', user = user)
 
 if not os.path.exists('img_store'):
     os.mkdir('img_store')
@@ -48,13 +60,45 @@ class RegexConverter(BaseConverter):
 
 app.url_map.converters['regex'] = RegexConverter
 
+@app.route('/Group5.html')
+def group():
+    user = None
+    access_token = request.cookies.get('access_token')
+    if access_token:
+        if(access_token == "40"):
+            user = None
+        else:        
+            db_conn = db.utils.get_connection()
+            customer = db.customer.getCustomerByID(db_conn, access_token)
+            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
+    else:
+        user = None
+    return render_template('Group5.html', user = user)
+
+@app.route('/HomeScreen.html')
+def homescreen():
+    user = None;
+    access_token = request.cookies.get('access_token')
+    if access_token:
+        if(access_token == "40"):
+            user = None
+        else:        
+            db_conn = db.utils.get_connection()
+            customer = db.customer.getCustomerByID(db_conn, access_token)
+            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
+    else:
+        user = None
+    return render_template('HomeScreen.html', user = user)
+
+
 @app.route('/CustomersAccount.html')
 def custaccount():
     access_token = request.cookies.get('access_token')
     if access_token:
-        user_id = access_token2user_id(access_token)
-        # TODO get user from database by ID, return error if no user
-        user = {'name': 'Aidan Rosswood', 'credits': 10000, 'id': 500}
+        db_conn = db.utils.get_connection()
+        customer = db.customer.getCustomerByID(db_conn, access_token)
+        print(customer.name)
+        user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
     else:
         user = None
 
@@ -80,13 +124,47 @@ def serveimg(fname):
 @app.route('/signin', methods=['POST'])
 def signin():
     email, userpass = request.form.get('email'), request.form.get('userpass')
-    if not email or not userpass:
-        return "Missing email or password", 400 # return error
+    token = request.cookies.get('access_token')
+    print("hither")
+    print(token)
+    if(token == '40'):
+        print("inhere")
+        if not email or not userpass:
+            return "Missing email or password", 400 # return error
 
-    # TODO actually get user from database or return error if they arent in the DB, get their access token also
-    access_token = "420"
+        db_conn = db.utils.get_connection()
+        customer = db.customer.getCustomerByEmail(db_conn, email)
+        access_token = customer.id
+        print(customer.password)
+        if(customer.password == userpass):
+            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
+            return render_template('SignIn.html', access_token=access_token, user=user)
+        else:
+            return "Wrong Username or Password", 400 # return error
+    else:
+        user = None
+        return render_template('SignIn.html', access_token=40, user=user)
 
-    return render_template('SignIn.html', access_token=access_token)
+@app.route('/signup', methods=['POST'])
+def signup():
+    email, password, name, phone, address, card, liID = request.form.get('newemail'), request.form.get('newpassword'), request.form.get('newName'), request.form.get('newphone'), request.form.get('newAddress'), request.form.get('newCard'), request.form.get('newID')
+
+    print(email)
+    print(password)
+    print(name)
+    if not email or not password or not name or not phone or not address or not card or not liID:
+        return "some fields are missing", 400 #return error
+    print("MADE IT ######################################################################")
+
+    db_conn = db.utils.get_connection()
+    db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
+    print("here")
+    
+    customer = db.customer.getCustomerByEmail(db_conn, email)
+    access_token = customer.id
+    print(customer.password)
+    user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id}
+    return render_template('CustomersAccount.html', access_token=access_token, user=user)
 
 
 @app.route('/user', methods=['GET'])
@@ -138,27 +216,28 @@ def put_purchase():
     db_conn = db.utils.get_connection()
 
     remainingCredits= db.customer.getCredits(db_conn, user_id)
-    print(remainingCredits)
+   
     totalCredits=0
     for item_id in item_ids: 
         if(db.stock.getStockById(db_conn,item_id,machine_id)==0):
             return 'no enough stock', 400
         totalCredits = totalCredits + db.products.getPrice(db_conn,item_id)
-        print(item_id)
+        
 
-    print(totalCredits)    
+   
     
     if(totalCredits > remainingCredits):
         return 'Too Many Items', 400
     else:
         newCredit = remainingCredits - totalCredits
-        print(newCredit)
+        
         for item_id in item_ids:
             db.stock.updateStock(db_conn,item_id, machine_id)
         for item_id in item_ids:
+            print(item_id)
             print(db.stock.getStockById(db_conn,item_id,machine_id))
         db.customer.updateCredits(db_conn, user_id, newCredit)
-        print(db.customer.getCredits(db_conn, user_id))
+        
     data = {}
     data['newCredit'] = newCredit
     return json.dumps(data)

@@ -17,6 +17,7 @@ function createAcc(){
 	var newuserphone = userphone.value;
 	var newID = userID.value;
 
+	form.submit();
 	alert("username is: " + newusername + "\npassword is: " + newpassword + "\nemail is: " + newuseremail + 
 		  "\nphone number is: " + newuserphone + "\n ID is: " + newID);
 	window.open("CustomersAccount.html");

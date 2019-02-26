@@ -12,6 +12,8 @@ CREATE TABLE CUSTOMERS (
     NAME VARCHAR(20),
     CREDITS INT,
     PHONENUMBER VARCHAR(12),
+    USERPASS VARCHAR(20),
+    CARDNUMBER VARCHAR(20),
     PRIMARY KEY(ID));
 
 CREATE TABLE OWNERS (
@@ -51,6 +53,7 @@ CREATE TABLE STOCK (
     grant select on OWNERS to public;
     grant select on PRODUCTS to public;
 
+#---------------------------------- END TABLE CREATION -----------------------------------
 
 insert into OWNERS (EMAIL, ADDRESS, PHONENUMBER)
 values ("this@gmail.com", "6579 Laburnum St.", "2508265287");
@@ -70,8 +73,8 @@ values (1, 1, 5, 0);
 insert into STOCK (VENDINGID, PRODUCTID, QUANTITY, SLOT)
 values (1, 2, 10, 1);
 
-insert into CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER)
-values("M01554195", "aidoraide@gmail.com", "6507 Maple St.", "Aidan Rosswood", 100000, "7788662529");
+insert into CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER, USERPASS, CARDNUMBER)
+values("M01554195", "aidoraide@gmail.com", "6507 Maple St.", "Aidan Rosswood", 100000, "1231231234",'aidorade', 1234123412341234);
 
-insert into CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER)
-values("M01984776", "kjm.ducks@gmail.com", "6579 Laburnum St.", "Kyle Martin", 200000, "2508265287");
+insert into CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER, USERPASS, CARDNUMBER)
+values("M01984776", "kjm.ducks@gmail.com", "6579 Laburnum St.", "Kyle Martin", 200000, "1234562345", 'mahtin', 7894789478947894);

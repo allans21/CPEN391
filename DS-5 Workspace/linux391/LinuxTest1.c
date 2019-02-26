@@ -15,6 +15,8 @@
 #include "pi.h"
 #include "appObjects.h"
 
+#define MACHINE_ID 1
+
 static const char basis_64[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -164,9 +166,21 @@ int main(void)
 	int err = scan_id(pi_conf, &c);
 	printf("Customer ID=%d, credits=%d, name=\"%s\" phone_number=\"%s\"\n", c.ID, c.credits, c.name, c.phone_number);
 
-	Inventory **i;
-	err = get_inventory(pi_conf, 1, i);
+	Inventory *inventory;
+	int len;
+	err = get_inventory(pi_conf, MACHINE_ID, &inventory, &len);
+	for (int i = 0; i < len; i++) {
+		printf("INVENTORY name->%s slot->%d price->%d quantity->%d stock_id->%d\n",
+				inventory[i].name, inventory[i].slot, inventory[i].price,
+				inventory[i].quantity, inventory[i].stock_id);
+	}
 
+
+	int purchases[] = {inventory[0].stock_id, inventory[0].stock_id, inventory[1].stock_id};
+	int new_balance;
+	err = make_purchase(pi_conf, MACHINE_ID, c.ID, purchases, 3, &new_balance);
+
+	printf("new_balance after purchase=%d\n", new_balance);
 
 
 	pthread_join(thread1,NULL);

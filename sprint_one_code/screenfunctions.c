@@ -4430,7 +4430,6 @@ void CheckingID(int counter){
 void ErrorID(){
 
     ClearScreen(BACKGROUND);
-
     char str1[] = "There was an error";
     PrintString(str1, 18, 202, 150, BACKGROUND, FONT);
 
@@ -4447,14 +4446,12 @@ void PickType(int amount){
     Button(600, 50, 300, 25, LIME, BLACK,YELLOW , str,20);
     char str4[] = "CR: 50";
     Button(200, 50, 700, 25, LIME, BLACK,YELLOW , str4, 7);
-    char str5[] = "Sign out";
+    char str5[] = "Log Out";
     Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
     char str6[] = "Pay";
     Button(200, 50, 360, 450, LIME, BLACK,BLACK , str6, 3);
     char str7[] = "Total:";
     Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
-
-
 
    int y = amount % 10;
     char fir = (char) 48 + y;
@@ -4520,6 +4517,61 @@ void PickType(int amount){
 void PickTypeUpdate(int amount, int beer, int weed, int cigar){
    // prints the total amount
     //ClearScreen(BACKGROUND);
+/*
+     ClearScreen(BACKGROUND);
+   // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
+
+    char str[] = "Username: Cristian Brazales";
+    Button(600, 50, 300, 25, LIME, BLACK,YELLOW , str,20);
+    char str4[] = "CR: 50";
+    Button(200, 50, 700, 25, LIME, BLACK,YELLOW , str4, 7);
+    char str5[] = "Sign out";
+    Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
+    char str6[] = "Pay";
+    Button(200, 50, 360, 450, LIME, BLACK,BLACK , str6, 3);
+    char str7[] = "Total:";
+    Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
+
+
+
+    char str1[] = "Beer";
+
+
+    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
+    // plus 
+    FilledRectangle(585, 595,130,170,RED);
+
+    FilledRectangle(565, 615,145,155,RED);
+    //  minus
+    FilledRectangle(705, 745,145,155,BLACK);
+
+
+
+    char str2[] = "Weed";
+    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
+      // plus 
+    FilledRectangle(585, 595,220,260,RED);
+
+    FilledRectangle(565, 615,235,245,RED);
+    //  minus
+    FilledRectangle(705, 745,235,245,BLACK);
+    /// string for amount 
+    
+
+
+    char str3[] = "Cigarettes";
+    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
+         // plus 
+    FilledRectangle(585, 595,310,350,RED);
+
+    FilledRectangle(565, 615,325,335,RED);
+    //  minus
+    FilledRectangle(705, 745,325,335,BLACK);
+    // string cigarrets
+    */
+    FilledRectangle(616, 704,130,350,BACKGROUND);
+
+    ////
    int y = amount % 10;
     char fir = (char) 48 + y;
     amount -= y;
@@ -4556,11 +4608,6 @@ void Dispense(){
        PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
         char str[] = "dispensing";
           PrintString(str, 10, 200, 200, BACKGROUND, FONT);
-
-
-
-
-
 }
 
 
@@ -4587,9 +4634,12 @@ void Payment(int x){
     PrintString(str1, 14, 246, 100, BACKGROUND, FONT);
     PrintString(chr, 6, 334, 200, BACKGROUND, FONT);
 
+     char str4[] = "  Press to confirm";
+       Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
+
 }
 
-void MakeSelection(){
+void Complete(){
 
     ClearScreen(BACKGROUND);
 
