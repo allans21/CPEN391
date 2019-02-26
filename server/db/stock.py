@@ -27,3 +27,15 @@ def getInventory(db_conn, vending_id):
         'slot': slot, 'name': name, 'price': price
     } for stock_id, quantity, slot, name, price in curs]
 
+def updateStock(db_conn, product_id, vending_id):
+    query = """UPDATE STOCK SET QUANTITY = QUANTITY-1 WHERE (VENDINGID = %s AND  PRODUCTID = %s)"""
+    curs = db_conn.cursor()
+    curs.execute(query, [vending_id, product_id])
+    db_conn.commit()
+
+def getStockById(db_conn, product_id, vending_id):
+    query = """select QUANTITY from STOCK where VENDINGID=%s AND PRODUCTID = %s """
+    curs = db_conn.cursor()
+    curs.execute(query, [vending_id, product_id])
+    for row in curs:
+        return row[0]

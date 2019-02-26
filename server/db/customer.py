@@ -28,6 +28,14 @@ def getCustomerByBarcode(db_conn, barcode_id):
     for row in curs:
         return Customer(*row)
 
+def getCredits(db_conn, id):
+    query = """SELECT CREDITS
+        FROM CUSTOMERS WHERE ID=%s"""
+    curs = db_conn.cursor()
+    curs.execute(query, [id])
+    for row in curs:
+        return row[0]
+
 def getCustomerByEmail(db_conn, email):
     query = """SELECT ID, DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER, USERPASS, CARDNUMBER
                    FROM CUSTOMERS WHERE EMAIL=%s"""
@@ -42,4 +50,12 @@ def getCustomerByID(db_conn, id):
     curs = db_conn.cursor()
     curs.execute(query, [id])
     for row in curs:
-        return Customer(*row)
+         return Customer(*row)
+        
+def updateCredits(db_conn, id, newValue):
+    print(newValue)
+    query = """UPDATE CUSTOMERS SET CREDITS = %s WHERE ID = %s"""
+    curs = db_conn.cursor()
+    curs.execute(query, [newValue, id])
+    db_conn.commit()
+
