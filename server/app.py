@@ -199,3 +199,15 @@ def get_inventory():
 
     return json.dumps(inventory)
 
+@app.route('/purchase', methods=['PUT'])
+def put_purchase():
+    if 'user_id' not in request.form:
+        return 'No userId', 400
+    
+    if 'item_id' not in request.form:
+        return 'No itemId', 4000
+
+    user_id = request.form['user_id']
+    item_id = request.form['item_id']
+    db_conn = db.utils.get_connection()
+    return json.dumps([])

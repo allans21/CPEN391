@@ -126,7 +126,7 @@ void Dispense();
 
 //x is the amount the customer needs to pay 1234 = $12.34
 void Payment(int x);
-void MakeSelection();
+void Complete();
 int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR);
 
 
