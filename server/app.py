@@ -334,10 +334,11 @@ def put_purchase():
     remainingCredits= db.customer.getCredits(db_conn, user_id)
    
     totalCredits=0
-    for item_id in item_ids: 
-        if(db.stock.getStockById(db_conn,item_id,machine_id)==0):
-            return 'no enough stock', 400
-        totalCredits = totalCredits + db.products.getPrice(db_conn,item_id)
+    for stock_id in item_ids:
+        print('Getting stock #', stock_id)
+        if not db.stock.getStockById(db_conn,stock_id):
+            return 'not enough stock', 400
+        totalCredits = totalCredits + db.products.getPriceByStock(db_conn,stock_id)
         
 
    
@@ -349,9 +350,6 @@ def put_purchase():
         
         for item_id in item_ids:
             db.stock.updateStock(db_conn,item_id, machine_id)
-        for item_id in item_ids:
-            print(item_id)
-            print(db.stock.getStockById(db_conn,item_id,machine_id))
         db.customer.updateCredits(db_conn, user_id, newCredit)
         
     data = {}
