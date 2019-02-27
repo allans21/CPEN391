@@ -355,3 +355,8 @@ def put_purchase():
     data = {}
     data['newCredit'] = newCredit
     return json.dumps(data)
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
+
