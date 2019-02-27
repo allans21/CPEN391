@@ -8,4 +8,7 @@ int scan_id(SerialConf *, Customer *);
 int get_inventory(SerialConf *, int, Inventory **, int *);
 SerialConf *Init_Pi(void*);
 
+int test_pi_serial(SerialConf *sc);
+int test_pi_server(SerialConf *sc);
+
 #endif

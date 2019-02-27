@@ -66,16 +66,9 @@ int main () {
 	int counter = 0;
 	SerialConf * touch_conf = Init_Touch(virtual_base); // TODO get real virtual base
 	SerialConf * motor_conf = Init_Motors(virtual_base);
-
-	Run_Motors(0, motor_conf);
-	Run_Motors(0, motor_conf);
-	Run_Motors(1, motor_conf);
-	Run_Motors(1, motor_conf);
-
 	SerialConf * pi_conf    = Init_Pi(virtual_base);
-	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
 
-    int amount_to_pay=0;
+    int amount_to_pay = 0;
     int valid;
 	Point touch;
 	int flag = TRUE;
@@ -85,6 +78,41 @@ int main () {
 	int inventoryLen;
 	int totalPrice = 500;
 	int quantities[64] = {0};
+
+	printf("Pi serial test... ");
+	err = test_pi_serial(pi_conf);
+	if (err) {
+		printf("FAILURE\n");
+	} else {
+		printf("SUCCESS\n");
+	}
+
+	printf("Pi serial to server test... ");
+	err = test_pi_server(pi_conf);
+	if (err) {
+		printf("FAILURE\n");
+	} else {
+		printf("SUCCESS\n");
+	}
+
+	printf("Pi to server to database test... ");
+	err = get_inventory(pi_conf, MACHINE_ID, &inventory, &inventoryLen);
+	if (err) {
+		printf("FAILURE\n");
+	} else {
+		printf("SUCCESS\n");
+		free(inventory); // TODO need inventory delete function (string has memory leak)
+		inventory = NULL;
+	}
+
+	printf("Arduino serial test... ");
+	test_arduino_serial(motor_conf);
+	printf("SUCCESS\n");
+
+
+
+	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
+	printf("WiFi test... SUCCESS\n");
 
 	printf("Looping!\n");
 	while(1){
@@ -300,7 +328,7 @@ int main () {
 			   next_state= main_page;
 			   WaitForTouch(touch_conf);
 		       WaitForReleased(touch_conf);
-		       touch=  GetRelease(touch_conf);
+		       touch = GetRelease(touch_conf);
 		       printf("x axis: %d", touch.y);
 		       printf("  y axis: %d\n", touch.x);
 			   break;

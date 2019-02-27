@@ -89,5 +89,6 @@ void WaitForReleased(SerialConf *);
 // Motors
 SerialConf* Init_Motors(void*);
 void Run_Motors(int, SerialConf *);
+void test_arduino_serial(SerialConf *sc);
 
 #endif // FOO_H_

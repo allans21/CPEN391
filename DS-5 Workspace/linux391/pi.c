@@ -55,7 +55,6 @@ int read_response(SerialConf *sc, char *buf) {
 	while (c != '{' && c != '[') {
 		c = getchar_uart(sc);
 	}
-	printf("read start char %c\n", c);
 	char startChar = c;
 	char stopChar = c == '{' ? '}' : ']';
 	int stack = 1;
@@ -133,8 +132,6 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 	// Receive response
 	char response[4096];
 	int len = read_response(sc, response);
-	printf("Got %d bytes\n", len);
-	printf("%s\n", response);
 
 	cJSON *item = NULL;
 	cJSON *inventoryArray = cJSON_Parse(response);
@@ -157,10 +154,6 @@ int get_inventory(SerialConf *sc, int machine_id, Inventory ** inventoryRet, int
 		cJSON *name = cJSON_GetObjectItemCaseSensitive(item, "name");
 		cJSON *stock_id = cJSON_GetObjectItemCaseSensitive(item, "stock_id");
 		cJSON *quantity = cJSON_GetObjectItemCaseSensitive(item, "quantity");
-
-		char *string = cJSON_Print(item);
-		printf("%d: %s\n", i, string);
-		free(string);
 
 		if (!cJSON_IsNumber(slot) || !cJSON_IsNumber(price)
 				|| !cJSON_IsNumber(stock_id) || !cJSON_IsNumber(quantity)
@@ -201,8 +194,6 @@ int make_purchase(SerialConf *sc, int machine_id, int customer_id, int *purchase
 	// Receive response
 	char response[4096];
 	int len = read_response(sc, response);
-	printf("Got %d bytes\n", len);
-	printf("%s\n", response);
 
 	cJSON *json = cJSON_Parse(response);
 	cJSON *jsonNewBal = cJSON_GetObjectItemCaseSensitive(json, "newCredit");
@@ -215,3 +206,38 @@ int make_purchase(SerialConf *sc, int machine_id, int customer_id, int *purchase
 	return 0;
 }
 
+int test_pi_serial(SerialConf *sc) {
+	putline(sc, "{\"cmd\":\"testSerial\"}");
+	char response[4096];
+	int len = read_response(sc, response);
+
+	cJSON *json = cJSON_Parse(response);
+	cJSON *jsonStatus = cJSON_GetObjectItemCaseSensitive(json, "status");
+	if (!jsonStatus || !cJSON_IsString(jsonStatus)) {
+		cJSON_Delete(json);
+		return 1;
+	}
+
+	int cmp = strcmp(jsonStatus->valuestring, "OK");  // cmp == 0 if equal
+
+	cJSON_Delete(json);
+	return cmp;
+}
+
+int test_pi_server(SerialConf *sc) {
+	putline(sc, "{\"cmd\":\"testAPI\"}");
+	char response[4096];
+	int len = read_response(sc, response);
+
+	cJSON *json = cJSON_Parse(response);
+	cJSON *jsonStatus = cJSON_GetObjectItemCaseSensitive(json, "status");
+	if (!jsonStatus || !cJSON_IsString(jsonStatus)) {
+		cJSON_Delete(json);
+		return 1;
+	}
+
+	int cmp = strcmp(jsonStatus->valuestring, "OK");  // cmp == 0 if equal
+
+	cJSON_Delete(json);
+	return cmp;
+}
