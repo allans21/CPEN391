@@ -22,6 +22,21 @@ def user_id2access_token(user_id):
 def access_token2user_id(access_token):
     return int(access_token)
 
+def getuser():
+    user = None;
+    access_token = request.cookies.get('access_token')
+    if access_token:
+        if(access_token == "40"):
+            user = None
+        else:        
+            db_conn = db.utils.get_connection()
+            customer = db.customer.getCustomerByID(db_conn, access_token)
+            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
+    else:
+        access_token = 40
+        user = None
+    return access_token, user
+
 
 @app.after_request
 def add_header(r):
@@ -37,18 +52,7 @@ def add_header(r):
 
 @app.route('/')
 def root():
-    user = None;
-    access_token = request.cookies.get('access_token')
-    if access_token:
-        if(access_token == "40"):
-            user = None
-        else:        
-            db_conn = db.utils.get_connection()
-            customer = db.customer.getCustomerByID(db_conn, access_token)
-            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
-    else:
-        user = None
-
+    access_token, user = getuser()
     return render_template('HomeScreen.html', user = user)
 
 if not os.path.exists('img_store'):
@@ -64,46 +68,18 @@ app.url_map.converters['regex'] = RegexConverter
 
 @app.route('/Group5.html')
 def group():
-    user = None
-    access_token = request.cookies.get('access_token')
-    if access_token:
-        if(access_token == "40"):
-            user = None
-        else:        
-            db_conn = db.utils.get_connection()
-            customer = db.customer.getCustomerByID(db_conn, access_token)
-            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
-    else:
-        user = None
+    access_token, user = getuser()
     return render_template('Group5.html', user = user)
 
 @app.route('/HomeScreen.html')
 def homescreen():
-    user = None;
-    access_token = request.cookies.get('access_token')
-    if access_token:
-        if(access_token == "40"):
-            user = None
-        else:        
-            db_conn = db.utils.get_connection()
-            customer = db.customer.getCustomerByID(db_conn, access_token)
-            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
-    else:
-        user = None
+    access_token, user = getuser()
     return render_template('HomeScreen.html', user = user)
 
 
 @app.route('/CustomersAccount.html')
 def custaccount():
-    access_token = request.cookies.get('access_token')
-    if access_token:
-        db_conn = db.utils.get_connection()
-        customer = db.customer.getCustomerByID(db_conn, access_token)
-        print(customer.name)
-        user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
-    else:
-        user = None
-
+    access_token, user = getuser()
     return render_template('CustomersAccount.html', user=user)
 
 
@@ -126,24 +102,20 @@ def serveimg(fname):
 @app.route('/signin', methods=['POST'])
 def signin():
     email, userpass = request.form.get('email'), request.form.get('userpass')
-    token = request.cookies.get('access_token')
-    print(token)
-    if(token == '40'):
-        if not email or not userpass:
-            return render_template("Missingfields.html", access_token=40, user=None)
+    if not email or not userpass:
+        return render_template("ErrorMessage.html", error_message="Missing username or password", new_page="HomeScreen.html")
 
-        db_conn = db.utils.get_connection()
-        customer = db.customer.getCustomerByEmail(db_conn, email)
-        access_token = customer.id
-        print(customer.password)
-        if(customer.password == userpass):
-            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
-            return render_template('SignIn.html', access_token=access_token, user=user)
-        else:
-            return render_template('wrongpass.html', access_token=40, user=None)
+    db_conn = db.utils.get_connection()
+    customer = db.customer.getCustomerByEmail(db_conn, email)
+    if not customer:
+        return render_template("ErrorMessage.html", error_message="Wrong username or password", new_page="HomeScreen.html")
+        
+    access_token = customer.id 
+    if(customer.password == userpass):
+        user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
+        return render_template('SignIn.html', access_token=access_token, user=user)
     else:
-        user = None
-        return render_template('SignIn.html', access_token=40, user=user)
+        return render_template("ErrorMessage.html", error_message="Wrong username or password", new_page="HomeScreen.html")
 
 @app.route('/signout', methods=['POST'])
 def signout():
@@ -154,14 +126,15 @@ def signup():
     email, password, name, phone, address, card, liID = request.form.get('newemail'), request.form.get('newpassword'), request.form.get('newName'), request.form.get('newphone'), request.form.get('newAddress'), request.form.get('newCard'), request.form.get('newID')
 
     if not email or not password or not name or not phone or not address or not card or not liID:
-        return render_template("missingsignup.html", access_token=40, user=None)
+        return render_template("ErrorMessage.html", error_message="Missing fields, please fill out all information and resubmit", new_page="SignUp.html")
 
     today = datetime.date.today()
     db_conn = db.utils.get_connection()
     date = db.customer.getDate(db_conn, liID)
     age = abs((today - date).days)
     if(age < 6935):
-        return "you are not of legal age", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Sorry you are not of legal age and can not make an account until you are 19", new_page="HomeScreen.html")
+
     db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
 
     customer = db.customer.getCustomerByEmail(db_conn, email)
@@ -174,7 +147,8 @@ def signup():
 def Namechange():
     name = request.form.get('updname')
     if not name :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new name", new_page="CustomersAccount.html")
+
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -188,7 +162,7 @@ def Namechange():
 def emailchange():
     email = request.form.get('updemail')
     if not email :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new email", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -201,8 +175,8 @@ def emailchange():
 @app.route('/update-address', methods=['post'])
 def addresschange():
     address = request.form.get('updaddress')
-    if not addresss :
-        return "name field is missing", 400 #return error
+    if not address :
+        return render_template("ErrorMessage.html", error_message="Missing new address", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -216,7 +190,7 @@ def addresschange():
 def dlIDchange():
     dlID = request.form.get('upddlID')
     if not dlID :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new license ID", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -230,7 +204,7 @@ def dlIDchange():
 def phonechange():
     phone = request.form.get('updphone')
     if not phone :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new phone number", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -244,7 +218,7 @@ def phonechange():
 def passchange():
     passw = request.form.get('updpass')
     if not passw :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new password", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -258,7 +232,7 @@ def passchange():
 def cardchange():
     card = request.form.get('updcard')
     if not card :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing new Credit Card number", new_page="CustomersAccount.html")
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
@@ -272,7 +246,11 @@ def cardchange():
 def creditschange():
     credits = request.form.get('updcredits')
     if not credits :
-        return "name field is missing", 400 #return error
+        return render_template("ErrorMessage.html", error_message="Missing how many credits to add", new_page="CustomersAccount.html")
+
+    if isinstance(credits, str):
+        return render_template("ErrorMessage.html", error_message="You did not enter a number for how many credits to add", new_page="CustomersAccount.html")
+
 
     access_token = request.cookies.get('access_token')    
     db_conn = db.utils.get_connection()
