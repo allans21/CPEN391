@@ -153,15 +153,15 @@ def signup():
 
     if not email or not password or not name or not phone or not address or not card or not liID:
         return "some fields are missing", 400 #return error
-    print("MADE IT ######################################################################")
 
-    today = datetime.datetime.now().date
+    today = datetime.date.today()
     db_conn = db.utils.get_connection()
     date = db.customer.getDate(db_conn, liID)
-    print(date)
-
+    age = abs((today - date).days)
+    if(age < 6935):
+        return "you are not of legal age", 400 #return error
     db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
-    
+
     customer = db.customer.getCustomerByEmail(db_conn, email)
     access_token = customer.id
     print(customer.password)

@@ -1,13 +1,11 @@
 <html>
     <head>
         <script>
-            alert(document.cookie);
             placement = document.cookie.search("access_token=40")
             if(placement == -1){
                 document.cookie = "access_token=40";
                 window.location.replace("HomeScreen.html");
             }else{
-                alert("changing cookie {{ access_token }}");
                 document.cookie = "access_token={{ access_token }}";
                 window.location.replace("CustomersAccount.html")
             }
