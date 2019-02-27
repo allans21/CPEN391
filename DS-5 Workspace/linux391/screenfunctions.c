@@ -4644,7 +4644,7 @@ void Complete(int newBalance){
 
 	char newbal_buf[128];
 	int newbal_buflen = sprintf(newbal_buf, "Your new balance is %d credits", newBalance);
-	PrintString(newbal_buf, 20, 180, 250, BACKGROUND, FONT);
+	PrintString(newbal_buf, newbal_buflen, 25, 250, BACKGROUND, FONT);
 
     /*
     char str3[] = "Cigarettes";

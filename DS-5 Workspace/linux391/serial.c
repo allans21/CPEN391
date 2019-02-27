@@ -48,7 +48,6 @@ int putchar_uart(int c, SerialConf *sc) {
 }
 
 void putline(SerialConf *sc, char * str) {
-	printf("putline: %s\n", str);
 	while (*str) {
 		putchar_uart(*str, sc);
 		str += 1;

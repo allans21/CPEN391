@@ -235,3 +235,7 @@ void Run_Motors(int motor, SerialConf *sc){
 	while(getchar_uart(sc) != 'D'){}
 }
 
+void test_arduino_serial(SerialConf *sc) {
+	putchar_uart('T',  sc);
+	while(getchar_uart(sc) != 'S'){}
+}

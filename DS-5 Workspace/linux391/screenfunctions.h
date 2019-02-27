@@ -57,7 +57,7 @@
 #define XRES 800
 #define YRES 480
 
-#define BACKGROUND      WHITE
+#define BACKGROUND      CYAN
 #define FONT            BLACK
 #define BUTTONCOL       WHITE
 #define BUTTONFONT      BLACK
