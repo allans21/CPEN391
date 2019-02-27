@@ -318,20 +318,27 @@ def get_inventory():
 
 @app.route('/purchase', methods=['PUT'])
 def put_purchase():
+
+    #making sure all the require form data are passed in
     if 'user_id' not in request.form:
         return 'No userId', 400
-    
     if 'item_ids' not in request.form:
         return 'No itemIds', 400
     if 'machine_id' not in request.form:
         return ' No machinesId', 400
 
+    #retreive data from the api call
     user_id = request.form['user_id']
     item_ids = request.form.getlist('item_ids')
     machine_id = request.form['machine_id']
+
+    #start the database connection
     db_conn = db.utils.get_connection()
 
+    #ask the database for current user credit count
     remainingCredits= db.customer.getCredits(db_conn, user_id)
+    if remainingCredits is None:
+        return 'incorrect id'
    
     totalCredits=0
     for stock_id in item_ids:
