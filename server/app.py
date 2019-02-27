@@ -127,12 +127,10 @@ def serveimg(fname):
 def signin():
     email, userpass = request.form.get('email'), request.form.get('userpass')
     token = request.cookies.get('access_token')
-    print("hither")
     print(token)
     if(token == '40'):
-        print("inhere")
         if not email or not userpass:
-            return "Missing email or password", 400 # return error
+            return render_template("Missingfields.html", access_token=40, user=None)
 
         db_conn = db.utils.get_connection()
         customer = db.customer.getCustomerByEmail(db_conn, email)
@@ -142,17 +140,21 @@ def signin():
             user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
             return render_template('SignIn.html', access_token=access_token, user=user)
         else:
-            return "Wrong Username or Password", 400 # return error
+            return render_template('wrongpass.html', access_token=40, user=None)
     else:
         user = None
         return render_template('SignIn.html', access_token=40, user=user)
+
+@app.route('/signout', methods=['POST'])
+def signout():
+    return render_template('signout.html', access_token=40, user=None)
 
 @app.route('/signup', methods=['POST'])
 def signup():
     email, password, name, phone, address, card, liID = request.form.get('newemail'), request.form.get('newpassword'), request.form.get('newName'), request.form.get('newphone'), request.form.get('newAddress'), request.form.get('newCard'), request.form.get('newID')
 
     if not email or not password or not name or not phone or not address or not card or not liID:
-        return "some fields are missing", 400 #return error
+        return render_template("missingsignup.html", access_token=40, user=None)
 
     today = datetime.date.today()
     db_conn = db.utils.get_connection()
