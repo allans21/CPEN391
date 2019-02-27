@@ -25,10 +25,9 @@ def getDate(db_conn, DL_ID):
     print(DL_ID)
     curs = db_conn.cursor()
     curs.execute(sql)
-    print("hither##############################################################")
-    for row in curs:
-        date = row
-    return date    
+    date = curs.fetchone()
+    data = date[0]
+    return data   
 
 def changeName(db_conn, NAME, ID):
     sql = "UPDATE CUSTOMERS SET NAME=%s WHERE ID = %s"

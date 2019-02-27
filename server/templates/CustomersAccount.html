@@ -4,14 +4,14 @@
 
 {% block content %}
 	{% if user %}
-		<h3 style="padding-left:1em">Hi {{user.name}}, the following is your information which you can change at any time. <br><br></h3>
+		<h3 style="padding-left:1em; color: white">Hi {{user.name}}, the following is your information which you can change at any time. <br><br></h3>
 		<div class="row">
 			<form id=update-name action="/update-name" method="POST">
 				<div class="col-md-6">
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-name">Current Name: {{user.name}}</label>
+								<label for="upd-name" style="color: white">Current Name: {{user.name}}</label>
 							<input type="text" class="form-control" id="updname" name="updname" placeholder="Chad Chadley">
 						</div>
 					</div><br>
@@ -26,7 +26,7 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-email">Current Email: {{user.email}}</label>
+								<label for="upd-email" style="color: white">Current Email: {{user.email}}</label>
 							<input type="text" class="form-control" id="updemail" name="updemail" placeholder="Example@gmail.com">
 						</div>
 					</div><br>
@@ -44,7 +44,7 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-address">Current Address: {{user.address}}</label>
+								<label for="upd-address" style="color: white">Current Address: {{user.address}}</label>
 							<input type="text" class="form-control" id="updaddress" name="updaddress" placeholder="123 Example St.">
 						</div>
 					</div><br>
@@ -59,7 +59,7 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-dlID">Current Driver License ID: {{user.dlID}}</label>
+								<label for="upd-dlID" style="color: white">Current Driver License ID: {{user.dlID}}</label>
 							<input type="text" class="form-control" id="upddlID" name="upddlID" placeholder="M12345678">
 						</div>
 					</div><br>
@@ -77,7 +77,7 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-phone">Current Phone Number: {{user.phone}}</label>
+								<label for="upd-phone" style="color: white">Current Phone Number: {{user.phone}}</label>
 							<input type="text" class="form-control" id="updphone" name="updphone" placeholder="2501234567">
 						</div>
 					</div><br>
@@ -92,8 +92,8 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-pass">Current Password: {{user.password}}</label>
-							<input type="text" class="form-control" id="updpass" name="updpass" placeholder="SecretPassword123!">
+								<label for="upd-pass" style="color: white">Change Password:</label>
+							<input type="password" class="form-control" id="updpass" name="updpass" placeholder="SecretPassword123!">
 						</div>
 					</div><br>
 					<div class="row">	
@@ -110,7 +110,7 @@
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-								<label for="upd-card">Current Credit Card: {{user.cardNum}}</label>
+								<label for="upd-card" style="color: white">Current Credit Card: {{user.cardNum}}</label>
 							<input type="text" class="form-control" id="updcard" name="updcard" placeholder="1234567812345678">
 						</div>
 					</div><br>
@@ -124,25 +124,26 @@
 
 
 		<br><br><br><br><br><br>
-		<h3 style="padding-left:1em">You have {{user.credits}} credits, you can add more credits below! </h3>
+		<h3 style="padding-left:1em; color: white">You have {{user.credits}} credits, you can add more credits below! </h3>
 		<div class="row">
 			<form id=update-credits action="/update-credits" method="POST">
 				<div class="col-md-6">
 					<div class="row">	
 						<div class="col-md-1"></div>
 						<div class="col-md-8">
-							<label for="upd-credits">Enter how many credits you wish to add:</label>
+							<label for="upd-credits" style="color: white">Enter how many credits you wish to add:</label>
 							<input type="text" class="form-control" id="updcredits" name="updcredits" placeholder="4000">
 						</div>
 					</div><br>
 					<div class="row">	
 						<div class="col-md-7"></div>
 						<button type="submit" class="btn btn-primary" id="updatecredits">Add Credits</button>
+						<br><br><br>
 					</div>
 				</div>
 			</form>
 	{% else %}
-		<h3>You are not logged in. You must login to view your account.</h3>
+		<h3 style="color: white">You are not logged in. You must login to view your account.</h3>
 	{% endif %}
 	<script>
 		$(".navbar-inverse .navbar-nav>li.myaccount").addClass("active");
