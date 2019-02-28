@@ -182,7 +182,7 @@ int main () {
 				   // Could be DB, Server, serial or Internet connection
 				   printf("DB/SERVER/SERIAL/INTERNET CONN ERROR\n");
 
-				   error_msgs[0] = "Visit our website to register your ID";
+				   error_msgs[0] = "";
 				   error_msgs[1] = "Failed to connect to the internet.";
 				   error_msgs[2] = "";
 				   next_state = error_page;
@@ -257,8 +257,8 @@ int main () {
 			       }
 			       // check for the log out button
 			       else if(IsInBox(touch.x,touch.y,  690,20, 750, 130)){
-			           next_state=main_page;
-			           flag=FALSE;
+			           next_state = main_page;
+			           flag = FALSE;
 				       break;
 			       }
 			       amount_to_pay = 0;
@@ -282,7 +282,7 @@ int main () {
 				   // check if the touch was the pay button
 				   if ( IsInBox(touch.x,touch.y,  610,80, 680, 380)){
 				       next_state = payment_confirmation_page;
-					   flag=FALSE;
+					   flag = FALSE;
 				       break;
 			       }
 			   }
