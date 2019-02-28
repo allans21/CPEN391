@@ -57,18 +57,15 @@ SerialConf* Init_WiFi(void *virtual_base)
 	while (got < 9) {
 		while(TestForReceivedData(sc) != 1) {;}
 		c = (char) getchar_uart(sc);
-		printf("%c", c);
 		if (c == expected[got]) {
 			got += 1;
 		}
 	}
-	printf("\n");
 
 	return sc;
 }
 
 int exec_lua(SerialConf *sc, char * str, char * res) {
-	printf("exec_lua: %s\n", str);
 	while (*str) {
 		putchar_uart(*str, sc);
 		str += 1;

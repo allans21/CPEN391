@@ -19,6 +19,8 @@
 
 #define MACHINE_ID 1
 
+#define N_ERR_LINES 3
+
 #include "virtualfuck.h"
 #include "serial_ports.h"
 #include "screenfunctions.h"
@@ -64,7 +66,7 @@ int main () {
 	next_state = main_page;
 	int colour_welcome = 0;
 	int counter = 0;
-	SerialConf * touch_conf = Init_Touch(virtual_base); // TODO get real virtual base
+	SerialConf * touch_conf = Init_Touch(virtual_base);
 	SerialConf * motor_conf = Init_Motors(virtual_base);
 	SerialConf * pi_conf    = Init_Pi(virtual_base);
 
@@ -74,10 +76,12 @@ int main () {
 	int flag = TRUE;
 	int err = FALSE;
 	Customer customer;
-	Inventory *inventory;
+	Inventory *inventory = NULL;
 	int inventoryLen;
 	int totalPrice = 500;
 	int quantities[64] = {0};
+
+	char *error_msgs[N_ERR_LINES]  = {"", "", ""};
 
 	printf("Pi serial test... ");
 	err = test_pi_serial(pi_conf);
@@ -101,7 +105,10 @@ int main () {
 		printf("FAILURE\n");
 	} else {
 		printf("SUCCESS\n");
-		free(inventory); // TODO need inventory delete function (string has memory leak)
+		for (int i = 0; i < inventoryLen; i++) {
+			free(inventory[i].name);
+		}
+		free(inventory);
 		inventory = NULL;
 	}
 
@@ -109,67 +116,75 @@ int main () {
 	test_arduino_serial(motor_conf);
 	printf("SUCCESS\n");
 
-
-
 	SerialConf * wifi_conf  = Init_WiFi(virtual_base);
 	printf("WiFi test... SUCCESS\n");
 
 	printf("Looping!\n");
 	while(1){
 
-/// LOGIC IN EACH PAGE
+        // Per page logic
 		switch(next_state) {
 
-		   case main_page  :
-		   	  colour_welcome=0;
-		   	   next_state= main_page;
+		   case main_page:
+			   if (inventory) {
+				   for (int i = 0; i < inventoryLen; i++) {
+				       free(inventory[i].name);
+				   }
+				   free(inventory);
+				   inventory = NULL;
+			   }
+		   	   colour_welcome = 0;
+		   	   next_state = main_page;
 		   	   First_StartingScreen();
-		   	   flag=TRUE;
-		   	   while(flag){
-		   	   	StartingScreen(colour_welcome);
-//		   		   First_StartingScreen();
-		   	   	colour_welcome++;
-			   //loops here until the screen has been touched;
+		   	   flag = TRUE;
+		   	   while(flag) {
+		   	   	   StartingScreen(colour_welcome);
+		   	   	   colour_welcome++;
+			       //loops here until the screen has been touched;
 
-			  	for(int i=0;i<700000;i++){
-			  	 	if( ScreenTouched(touch_conf) ){
-						WaitForReleased(touch_conf);
-						touch=  GetRelease(touch_conf);
-						printf("x axis: %d", touch.x);
-						printf("  y axis: %d\n", touch.y);
-						if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
-							/// read the status of the vending machine
-							next_state= scanid_page;
-							flag=FALSE;
-							break;
-						}
-					}
-			  	}
-
+			  	   for(int i=0;i<700000;i++) {
+			  	 	   if( ScreenTouched(touch_conf) ) {
+						   WaitForReleased(touch_conf);
+						   touch = GetRelease(touch_conf);
+						   printf("x axis: %d", touch.x);
+						   printf("  y axis: %d\n", touch.y);
+						   if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
+							   /// read the status of the vending machine
+							   next_state = scanid_page;
+							   flag = FALSE;
+							   break;
+						   }
+                       }
+			  	   }
 		   	   }
 		   	break;
 
 
 
 		   case  scanid_page:
-		   	   counter=0;
-			   CheckingID(counter, "   While Your I.D Is Verified    ", 34);
+			   Loading("   While Your I.D Is Verified    ", 34);
 			   err = scan_id(pi_conf, &customer);
-			   // LOWPRIORITY TODO background thread to display loading stuff
+			   // We should consider adding a background thread to display a moving loading screen and
+			   // avoid blocking the main thread
 			   if (err) {
-				   // TODO 2 error states, one for failed to scan ID, one for invalid customer (too young, not registered etc...)
+				   error_msgs[0] = "Failed to scan your ID";
+				   error_msgs[1] = "Try to scan again or visit our";
+				   error_msgs[2] = "website to register your ID";
 				   next_state = error_page;
 				   printf("SCAN ID ERROR\n");
 				   break;
 			   }
 
 			   // Successfully scanned ID and got customer, get inventory now
-			   // TODO this is a memory leak, we must deallocate this pointer
 			   err = get_inventory(pi_conf, MACHINE_ID, &inventory, &inventoryLen);
 			   if (err) {
 				   // Internet connection failed
 				   // Could be DB, Server, serial or Internet connection
 				   printf("DB/SERVER/SERIAL/INTERNET CONN ERROR\n");
+
+				   error_msgs[0] = "";
+				   error_msgs[1] = "Failed to connect to the internet.";
+				   error_msgs[2] = "";
 				   next_state = error_page;
 				   break;
 			   }
@@ -178,27 +193,24 @@ int main () {
 			   next_state = picktype_page;
 			   break;
 		   case  error_page:
-			   // TODO loop and wait for button press before
-		 	   ErrorID();
+		 	   ErrorID(error_msgs, N_ERR_LINES);
 
 			   //loops here until the screen has been touched;
-
-			  	for(int i=0;i<700000;i++){
-			  	 	if( ScreenTouched(touch_conf) ){
-						WaitForReleased(touch_conf);
-						touch=  GetRelease(touch_conf);
-						printf("x axis: %d", touch.x);
-						printf("  y axis: %d\n", touch.y);
-						if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
-							/// read the status of the vending machine
-							next_state= scanid_page;
-							flag=FALSE;
-							break;
-						}
-					}
-			  	}
-
-
+		 	   flag = TRUE;
+			   while (flag) {
+			  	   if( ScreenTouched(touch_conf) ){
+					   WaitForReleased(touch_conf);
+					   touch = GetRelease(touch_conf);
+					   printf("x axis: %d", touch.x);
+					   printf("  y axis: %d\n", touch.y);
+					   if( touch.y>=80 && touch.y<= 380 && touch.x>=610 && touch.x<=680 ){
+					       /// read the status of the vending machine
+					       next_state = scanid_page;
+					       flag = FALSE;
+					       break;
+					   }
+				   }
+			   }
 		 	   next_state = main_page;
 		 	   break;
 		   case picktype_page:
@@ -245,8 +257,8 @@ int main () {
 			       }
 			       // check for the log out button
 			       else if(IsInBox(touch.x,touch.y,  690,20, 750, 130)){
-			           next_state=main_page;
-			           flag=FALSE;
+			           next_state = main_page;
+			           flag = FALSE;
 				       break;
 			       }
 			       amount_to_pay = 0;
@@ -270,14 +282,14 @@ int main () {
 				   // check if the touch was the pay button
 				   if ( IsInBox(touch.x,touch.y,  610,80, 680, 380)){
 				       next_state = payment_confirmation_page;
-					   flag=FALSE;
+					   flag = FALSE;
 				       break;
 			       }
 			   }
                break;
 
 		   case payment_confirmation_page:
-			   CheckingID(counter, "While Your Payment Is Processed", 37);
+			   Loading("While Your Payment Is Processed", 37);
 			   int purchases [64] = {-1};
 			   int purchasesLen = 0;
 			   int newBalance;
@@ -290,6 +302,9 @@ int main () {
 			   err = make_purchase(pi_conf, MACHINE_ID, customer.ID, purchases, purchasesLen, &newBalance);
 			   if (err) {
 				   printf("MAKE PURCHASE ERROR\n");
+				   error_msgs[0] = "";
+				   error_msgs[1] = "There was an error processing your payment";
+				   error_msgs[2] = "";
 				   next_state = error_page;
 				   break;
 			   }

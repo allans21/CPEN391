@@ -124,8 +124,8 @@ void ClearScreen(int colour);
 //
 void First_StartingScreen();
 void StartingScreen(int colour);
-void CheckingID(int counter, char* txt,int length);
-void ErrorID();
+void Loading(char* txt, int length);
+void ErrorID(char ** error_lines, int n_lines);
 void PickType(Customer *c, Inventory * inventoryList, int inventoryLen);
 void PickTypeUpdate(int amount, int *quantities, int numItems);
 void Dispense();

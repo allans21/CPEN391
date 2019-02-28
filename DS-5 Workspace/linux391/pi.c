@@ -81,7 +81,6 @@ int scan_id(SerialConf *sc, Customer *c){
 	cJSON *json = cJSON_Parse(response);
 
 	//{"CREDITS": 10000, "PHONENUMBER": "778-866-2529", "NAME": "Aidan Rosswood", "ID": 12}
-	// DOCS FOR JSON -> https://github.com/DaveGamble/cJSON
 
 	cJSON *name = cJSON_GetObjectItemCaseSensitive(json, "NAME");
     if (cJSON_IsString(name) && (name->valuestring != NULL))
