@@ -265,7 +265,9 @@ def creditschange():
     if not credits :
         return render_template("ErrorMessage.html", error_message="Missing how many credits to add", new_page="CustomersAccount.html")
 
-    if isinstance(credits, str):
+    try:
+        credits = int(credits)
+    except:
         return render_template("ErrorMessage.html", error_message="You did not enter a number for how many credits to add", new_page="CustomersAccount.html")
 
 
