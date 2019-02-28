@@ -2,6 +2,7 @@
 #include "screenfunctions.h"
 #include <math.h>
 
+#define CHAR_WIDTH 20
 
 const unsigned char letters[95][120] = {
     // @0 ' ' (22 pixels wide)
@@ -4379,63 +4380,24 @@ void StartingScreen(int colour){
 
 }
 
-void CheckingID(int counter, char* txt, int length){
-   
-    if(counter%7==0){
-         ClearScreen(BACKGROUND);
-         char str1[] = "Please wait a moment";
-         PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
+void Loading(char* txt, int length){
+	 ClearScreen(BACKGROUND);
+	 char str1[] = "Please wait a moment";
+	 PrintString(str1, 20, 180, 150, BACKGROUND, FONT);
 
-         PrintString(txt, length,103-(length),200,BACKGROUND, FONT);
-         /*char str[] = "while your I.D is verified";
-         PrintString(str, 27, 103, 200, BACKGROUND, FONT);*/
+	 PrintString(txt, length,103-(length),200,BACKGROUND, FONT);
 
-         char str2[] = "Loading   ";
-         PrintString(str2, 10, 100, 400, BACKGROUND, FONT);
-    }
-    
-    switch(counter%7) {
-
-           case 0  :
-           break ;
-           case 1:
-           Circle(290, 410, 8, BLACK);
-           break;
-            case 2:
-           Circle(315, 410, 8, BLACK);
-           break;
-
-            case 3:
-           Circle(340, 410, 8, BLACK);
-           break;
-            case 4:
-           Circle(365, 410, 8, BLACK);
-           break;
-            case 5:
-           Circle(390, 410, 8, BLACK);
-           break;
-            case 6:
-           Circle(415, 410, 8, BLACK);
-           break;
-            case 7:
-           Circle(430, 410, 8, BLACK);
-           break;
-        }
-
-
-    
-
+	 char str2[] = "Loading   ";
+	 PrintString(str2, 10, 100, 400, BACKGROUND, FONT);
 }
 
-void ErrorID(){
-
+void ErrorID(char ** error_lines, int n_lines) {
     ClearScreen(BACKGROUND);
-    char str1[] = "There was an error";
-    PrintString(str1, 18, 202, 150, BACKGROUND, FONT);
-
-    char str[] = "processing your I.D.";
-    PrintString(str, 20, 180, 200, BACKGROUND, FONT);
-
+    for (int i = 0; i < n_lines; i++) {
+    	int dy = 50*i;
+    	int len = strlen(error_lines[i]);
+		PrintString(error_lines[i], len, 375 - len*CHAR_WIDTH/2, 150 + dy, BACKGROUND, FONT);
+    }
     char str4[] = "  Press to Restart ";
     Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
 }
@@ -4455,6 +4417,8 @@ void PickType(Customer *c, Inventory * inventoryList, int inventoryLen){
     Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
     char str6[] = "Pay";
     Button(200, 50, 360, 450, LIME, BLACK,BLACK , str6, 3);
+
+    // Total num of credits for all selected items
     char str7[] = "Total:";
     Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
 
@@ -4462,126 +4426,33 @@ void PickType(Customer *c, Inventory * inventoryList, int inventoryLen){
 	int total_buflen = sprintf(total_buf, "%d", 0);
     Button(140, 50, 680, 450, LIME, BLACK, WHITE, total_buf, total_buflen);
 
+    // Display each item in inventory
     for (int i = 0; i < inventoryLen; i++) {
     	int dy = 90 * i;
-    	 // beer
     	char name_buf[32];
 		int name_buflen = sprintf(name_buf, "%s", inventoryList[i].name);
     	Button(350, 60, 200, 150 + dy, BUTTONCOL, BLACK, BUTTONFONT, name_buf, name_buflen);
 		// plus
 		FilledRectangle(585, 595,130 + dy,170 + dy, RED);
-
 		FilledRectangle(565, 615, 145 + dy, 155 + dy, RED);
+
 		//  minus
 		FilledRectangle(705, 745, 145 + dy, 155 + dy, BLACK);
-		// string amount of beer
-		char num_beer[] ="0" ;
-		PrintString(num_beer, 1, 635, 130 + dy, BUTTONCOL, BLACK);
+		char zero[] = "0";
+		PrintString(zero, 1, 635, 130 + dy, BUTTONCOL, BLACK);
     }
-
-//    // beer
-//	char str1[] = "Beer";
-//
-//    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
-//    // plus
-//    FilledRectangle(585, 595,130,170,RED);
-//
-//    FilledRectangle(565, 615,145,155,RED);
-//    //  minus
-//    FilledRectangle(705, 745,145,155,BLACK);
-//    // string amount of beer
-//    char num_beer[] ="0" ;
-//    PrintString(num_beer, 1, 635, 130, BUTTONCOL, BLACK);
-//
-//
-//    char str2[] = "Weed";
-//    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
-//      // plus
-//    FilledRectangle(585, 595,220,260,RED);
-//
-//    FilledRectangle(565, 615,235,245,RED);
-//    //  minus
-//    FilledRectangle(705, 745,235,245,BLACK);
-//    /// string for amount
-//    char num_weed[] ="0" ;
-//    PrintString(num_weed, 1, 635, 220, BUTTONCOL, BLACK);
-//
-//
-//
-//    char str3[] = "Cigarettes";
-//    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-//         // plus
-//    FilledRectangle(585, 595,310,350,RED);
-//
-//    FilledRectangle(565, 615,325,335,RED);
-//    //  minus
-//    FilledRectangle(705, 745,325,335,BLACK);
-//    // string cigarrets
-//    char num_cigar[] ="0" ;
-//    PrintString(num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
-
-
 
 }
 
+
+/* Performs a rerender of selected components on the PickType screen
+ * amount: total cost in credits of all items
+ * quantities: array where quantities[i] == number of item desired in vending machine slot i
+ * numItems: total number of items to choose from -> length of quantities array
+ * */
 void PickTypeUpdate(int amount, int *quantities, int numItems){
-   // prints the total amount
-    //ClearScreen(BACKGROUND);
-/*
-     ClearScreen(BACKGROUND);
-   // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
-
-    char str[] = "Username: Cristian Brazales";
-    Button(600, 50, 300, 25, LIME, BLACK,YELLOW , str,20);
-    char str4[] = "CR: 50";
-    Button(200, 50, 700, 25, LIME, BLACK,YELLOW , str4, 7);
-    char str5[] = "Sign out";
-    Button(200, 50, 150, 450, LIME, BLACK,  RED , str5, 8);
-    char str6[] = "Pay";
-    Button(200, 50, 360, 450, LIME, BLACK,BLACK , str6, 3);
-    char str7[] = "Total:";
-    Button(140, 50, 540, 450, LIME, BLACK,WHITE , str7, 6);
-
-
-
-    char str1[] = "Beer";
-
-
-    Button(250, 60, 150, 150, BUTTONCOL, BLACK, BUTTONFONT, str1, 4);
-    // plus 
-    FilledRectangle(585, 595,130,170,RED);
-
-    FilledRectangle(565, 615,145,155,RED);
-    //  minus
-    FilledRectangle(705, 745,145,155,BLACK);
-
-
-
-    char str2[] = "Weed";
-    Button(250, 60, 150, 240, BUTTONCOL, BLACK, BUTTONFONT, str2, 4);
-      // plus 
-    FilledRectangle(585, 595,220,260,RED);
-
-    FilledRectangle(565, 615,235,245,RED);
-    //  minus
-    FilledRectangle(705, 745,235,245,BLACK);
-    /// string for amount 
-    
-
-
-    char str3[] = "Cigarettes";
-    Button(250, 60, 150, 330, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-         // plus 
-    FilledRectangle(585, 595,310,350,RED);
-
-    FilledRectangle(565, 615,325,335,RED);
-    //  minus
-    FilledRectangle(705, 745,325,335,BLACK);
-    // string cigarrets
-    */
     FilledRectangle(616, 704,130,350,BACKGROUND);
 
-    ////
     char total_buf[16];
 	int total_buflen = sprintf(total_buf, "%d", amount);
     Button(140, 50, 680, 450, LIME, BLACK, WHITE, total_buf, total_buflen);
@@ -4594,16 +4465,10 @@ void PickTypeUpdate(int amount, int *quantities, int numItems){
     	char num_weed =(char) '0' + quantities[i];
 		PrintString(&num_weed, 1, 635, 130 + dy, BUTTONCOL, BLACK);
     }
-//    char num_weed =(char) '0' + weed;
-//    PrintString(&num_weed, 1, 635, 220, BUTTONCOL, BLACK);
-//
-//    char num_cigar =(char) '0' + cigar;
-//    PrintString(&num_cigar, 1, 635, 310, BUTTONCOL, BLACK);
-//
-//    char num_beer =(char) '0' + beer;
-//    PrintString(&num_beer, 1, 635, 130, BUTTONCOL, BLACK);
+
 }
 
+/* To display while dispensing */
 void Dispense(){
 
     ClearScreen(BACKGROUND);
@@ -4615,7 +4480,9 @@ void Dispense(){
 }
 
 
-//x is the amount the customer needs to pay 1234 = $12.34
+/* Payment confirmation screen.
+ * totalCost: total cost of all items in credits
+ *  */
 void Payment(int totalCost){
     ClearScreen(BACKGROUND);
 
@@ -4645,27 +4512,8 @@ void Complete(int newBalance){
 	char newbal_buf[128];
 	int newbal_buflen = sprintf(newbal_buf, "Your new balance is %d credits", newBalance);
 	PrintString(newbal_buf, newbal_buflen, 25, 250, BACKGROUND, FONT);
-
-    /*
-    char str3[] = "Cigarettes";
-
-    Button(350, 60, 205, 47,  BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 205, 124, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 205, 201, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 205, 278, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 205, 355, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 205, 432, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-
-    Button(350, 60, 595, 47,  BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 595, 124, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 595, 201, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 595, 278, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 595, 355, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-    Button(350, 60, 595, 432, BUTTONCOL, BLACK, BUTTONFONT, str3, 10);
-*/
-
-
 }
+
 int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR){
     //x axis 
     if( y>=y_upperL && y<= y_lowerR && x>=x_upper_L && x<=x_lowerR )
