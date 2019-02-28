@@ -15,19 +15,25 @@ def insertCustomer(db_conn, ID, EMAIL, ADDRESS, PHONENUM, NAME, CREDITS, PASSWOR
     sql = "INSERT INTO CUSTOMERS (DL_ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUMBER, USERPASS, CARDNUMBER) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)"
     val = (ID, EMAIL, ADDRESS, NAME, CREDITS, PHONENUM, PASSWORD, CARDNUMBER)
     curs = db_conn.cursor()
-    curs.execute(sql, val)
-    db_conn.commit()
+    try:
+        curs.execute(sql, val)
+        db_conn.commit()
+        return 1
+    except Exception:
+        return 0 
+        
     print(curs.rowcount, "record inserted.")
 
-def getDate(db_conn, DL_ID):
-    sql = "select DATEOFBIRTH FROM DRIVERS"
-    val = (DL_ID)
-    print(DL_ID)
+def getDate(db_conn, ID):
+    sql = "select DATEOFBIRTH FROM DRIVERS WHERE DL_ID = %s"
+    val = (ID)
     curs = db_conn.cursor()
-    curs.execute(sql)
+    curs.execute(sql, [ID])
     date = curs.fetchone()
+    if(date == None):
+        return 0
     data = date[0]
-    return data   
+    return data  
 
 def changeName(db_conn, NAME, ID):
     sql = "UPDATE CUSTOMERS SET NAME=%s WHERE ID = %s"

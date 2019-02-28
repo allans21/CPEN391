@@ -29,9 +29,13 @@ def getuser():
         if(access_token == "40"):
             user = None
         else:        
-            db_conn = db.utils.get_connection()
-            customer = db.customer.getCustomerByID(db_conn, access_token)
-            user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
+            try:
+                db_conn = db.utils.get_connection()
+                customer = db.customer.getCustomerByID(db_conn, access_token)
+                user = {'name': customer.name, 'credits': customer.credits, 'id': customer.id, 'email': customer.email, 'address': customer.address, "dlID": customer.dl_id, "cardNum": customer.cardnumber, "phone": customer.phone_number, "password":customer.password}
+            except Exception:
+                access_token = 40
+                user = None
     else:
         access_token = 40
         user = None
@@ -128,15 +132,23 @@ def signup():
     if not email or not password or not name or not phone or not address or not card or not liID:
         return render_template("ErrorMessage.html", error_message="Missing fields, please fill out all information and resubmit", new_page="SignUp.html")
 
-    today = datetime.date.today()
     db_conn = db.utils.get_connection()
+    today = datetime.date.today()
     date = db.customer.getDate(db_conn, liID)
+    print(date)
+    try:
+        if(date == 0):
+            return render_template("ErrorMessage.html", error_message="Your license ID is not registered", access_token=40, new_page="SignUp.html")
+    except Exception:
+        pass
     age = abs((today - date).days)
     if(age < 6935):
         return render_template("ErrorMessage.html", error_message="Sorry you are not of legal age and can not make an account until you are 19", new_page="HomeScreen.html")
 
-    db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
+    error = db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
 
+    if(error == 0):
+        return render_template("ErrorMessage.html", error_message="That email is already connected to an account.", new_page="SignUp.html")
     customer = db.customer.getCustomerByEmail(db_conn, email)
     access_token = customer.id
     print(customer.password)
