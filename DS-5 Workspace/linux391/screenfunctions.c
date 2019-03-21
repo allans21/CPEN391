@@ -1,7 +1,10 @@
 
 #include "screenfunctions.h"
 #include <math.h>
-
+#include "images.h"
+#include <unistd.h>
+#include "serial.h"
+#include "serial_ports.h"
 #define CHAR_WIDTH 20
 
 const unsigned char letters[95][120] = {
@@ -4350,7 +4353,118 @@ void First_StartingScreen(){
     char str4[] = "  Press to continue";
        Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
 
+       print_machine_icon(699, 379);
+
 }
+
+int keypad_screen (SerialConf * touch_conf){
+    Point touch;
+    keypad_screen_init();
+    int pos=0;
+    int pin=0;
+    char number [4]={'_', '_', '_','_'};
+    char key;
+    // keep looping until exit
+    while(1){
+        WaitForTouch(touch_conf);
+        WaitForReleased(touch_conf);
+        touch = GetRelease(touch_conf);
+        printf("x axis: %d", touch.x);
+        printf("  y axis: %d\n", touch.y);
+        key=key_pressed ((int)touch.y,(int)touch.x);
+        printf("%c == key",key);
+        if(key!= '<' && key != '>' && key != 'x'){
+            FilledRectangle(225+ (pos*95),225+ (pos*95)+ 40 ,100,135, BACKGROUND);
+            keypad_update(pos, key);
+            number[pos]=key;
+            sleep(1);
+            // clear the box  225+ (pos*95)
+            FilledRectangle(225+ (pos*95),225+ (pos*95)+ 40 ,100,135, BACKGROUND);
+            keypad_update(pos, ' ');
+            keypad_update(pos, '*');
+            if(pos<3)
+                pos++;
+                keypad_update((pos)%4, '_');s    
+        }
+         else if (key== '<'){
+            pos=(pos-1)%4;
+            keypad_update((pos)%4, '_');
+         }else if (key== '>'){
+            pos=(pos+1)%4;
+            keypad_update((pos)%4, '_');
+         }
+
+
+    }
+
+
+	return 0;
+}
+void keypad_update(int pos, char val){
+		    char str []= {val};
+
+    // turn all the _ to black except the current position
+    if(val=='_'){
+    	for(int i=0; i<4 ; i ++){
+    		if (pos==i)
+    			PrintString(str, 1, 225+ (i*95) ,100 , BACKGROUND, RED);
+    		else
+    			PrintString(str, 1, 225+ (i*95) ,100 , BACKGROUND, BLACK);
+    	}
+    }
+
+    else
+			PrintString(str, 1, 225+ (pos*95) ,100 , BACKGROUND, BLACK);
+		return;
+
+}
+void keypad_screen_init () {
+	    int font_letters;
+
+	    font_letters= BLACK;
+
+
+	    ClearScreen(BACKGROUND);
+	    // char str[] = {'W', 'e', 'l', 'c', 'o', 'm', 'e', '!'};
+	    char str[] = "Welcome!";
+
+	    PrintString(str, 8, 300, 40, BACKGROUND, font_letters);
+	    // create the 5 digits buttons
+	     //void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
+	   // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
+	    char str2[] = "_";
+
+	  //  void PrintString(char str[], int length, int x, int y, int colourback, int colourfont);
+
+	    PrintString(str2, 1, 225 ,100 , BACKGROUND, RED);
+	    PrintString(str2, 1, 320 ,100 , BACKGROUND, font_letters);
+	    PrintString(str2, 1, 415 ,100 , BACKGROUND, font_letters);
+	    PrintString(str2, 1, 510 ,100 , BACKGROUND, font_letters);
+	    print_keypad(260, 180);
+	    print_machine_icon(699, 379);
+	    print_arrow (260,400);
+	    print_arrow_right (450,400);
+        char enter[]="Enter";
+        Button(200, 80, 650, 400, BUTTONCOL, BLACK, BUTTONFONT, enter, 20);
+
+}
+
+static  char* key_array[][3] = { {'7','8','9'},{'4','5','6'},{'1','2','3'},{'<','0','>'}};
+
+
+
+char key_pressed (int x, int y){
+    if((x<=315  && x>=165 ) && (y<=700 && y>=300)){
+    int i,j;
+    i=(x-165)/50;
+    j=(y-300)/100;
+    return (char)key_array[j][i];
+    }
+    else
+        return 'x';
+}
+
+
 
 void StartingScreen(int colour){
     int font_letters;

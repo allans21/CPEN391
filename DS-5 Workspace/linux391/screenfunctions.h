@@ -4,6 +4,7 @@
 
 #include "virtualfuck.h"
 #include "appObjects.h"
+#include "serial.h"
 
 #define HW_REGS_BASE ( 0xff200000 )
 #define HW_REGS_SPAN ( 0x00200000 )
@@ -136,6 +137,11 @@ void Payment(int x);
 void Complete(int newBalance);
 int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR);
 
-
+int keypad_screen (SerialConf * touch_conf);
+	
+void keypad_update(int pos, char val);
+void keypad_screen_init ();
+	  
+char key_pressed (int x, int y);
 
 #endif // SCREENFUNCTIONS_H_
