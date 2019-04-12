@@ -1,7 +1,10 @@
 
 #include "screenfunctions.h"
 #include <math.h>
-
+#include "images.h"
+#include <unistd.h>
+#include "serial.h"
+#include "serial_ports.h"
 #define CHAR_WIDTH 20
 
 const unsigned char letters[95][120] = {
@@ -4350,7 +4353,135 @@ void First_StartingScreen(){
     char str4[] = "  Press to continue";
        Button(500, 60, 400, 400, BUTTONCOL, BLACK, BUTTONFONT, str4, 20);
 
+       print_machine_icon(699, 379);
+
 }
+
+void keypad_screen (SerialConf * touch_conf, char number[], int size){
+    Point touch;
+    keypad_screen_init();
+    int pos=0;
+    int pin=0;
+    
+    char key;
+    // keep looping until exit
+    while(1){
+        // get the touch
+        WaitForTouch(touch_conf);
+        WaitForReleased(touch_conf);
+        touch = GetPointPressed(touch_conf);
+        printf("x axis: %d", touch.x);
+        printf("  y axis: %d, ", touch.y);
+        key=key_pressed ((int)touch.x,(int)touch.y);
+        printf("%c == key\n",key);
+        if(check_enter(touch.y, touch.x)) {
+            number[4] = '\0';
+            printf("exits\n");
+
+            printf("\n hhhh key is %s\n", number);
+            return;
+        }
+        else if(key!= '<' && key != '>' && key != 'x'){
+            FilledRectangle(225+ (pos*95),225+ (pos*95)+ 40 ,100,135, BACKGROUND);
+            keypad_update(pos, key);
+            number[pos]=key;
+            sleep(1);
+            // clear the box  225+ (pos*95)
+            FilledRectangle(225+ (pos*95),225+ (pos*95)+ 40 ,100,135, BACKGROUND);
+            keypad_update(pos, ' ');
+            keypad_update(pos, '*');
+            if(pos<3)
+                pos++;
+                keypad_update((pos)%4, '_');
+
+        }
+         else if (key== '<' && pos>0){
+            pos=(pos-1)%4;
+            keypad_update((pos), '_');
+            clear_left(pos);
+         }else if (key== '>' && pos<3){
+            pos=(pos+1)%4;
+            keypad_update((pos), '_');
+         }
+
+
+    }
+	return ;
+}
+void clear_left(int pos){
+  FilledRectangle(225+ (pos*95),800,100,135, BACKGROUND);
+
+}
+void keypad_update(int pos, char val){
+		    char str []= {val};
+
+    // turn all the _ to black except the current position
+    if(val=='_'){
+    	for(int i=0; i<4 ; i ++){
+    		if (pos==i)
+    			PrintString(str, 1, 225+ (i*95) ,100 , BACKGROUND, RED);
+    		else
+    			PrintString(str, 1, 225+ (i*95) ,100 , BACKGROUND, BLACK);
+    	}
+    }
+
+    else
+			PrintString(str, 1, 225+ (pos*95) ,100 , BACKGROUND, BLACK);
+		return;
+
+}
+int check_enter (int x, int y){
+    return ((x>=370 && x<=420)&& (y>=580 && y<=800));
+}
+
+
+void keypad_screen_init () {
+	    int font_letters;
+
+	    font_letters= BLACK;
+
+
+	    ClearScreen(BACKGROUND);
+	    // char str[] = {'W', 'e', 'l', 'c', 'o', 'm', 'e', '!'};
+	    char str[] = "Welcome!";
+
+	    PrintString(str, 8, 300, 40, BACKGROUND, font_letters);
+	    // create the 5 digits buttons
+	     //void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
+	   // void Button(int width, int height, int centerx, int centery, int colour, int bordColour, int colourfont, char str[], int length);
+	    char str2[] = "_";
+
+	  //  void PrintString(char str[], int length, int x, int y, int colourback, int colourfont);
+
+	    PrintString(str2, 1, 225 ,100 , BACKGROUND, RED);
+	    PrintString(str2, 1, 320 ,100 , BACKGROUND, font_letters);
+	    PrintString(str2, 1, 415 ,100 , BACKGROUND, font_letters);
+	    PrintString(str2, 1, 510 ,100 , BACKGROUND, font_letters);
+	    print_keypad(260, 180);
+	    print_machine_icon(699, 379);
+	    print_arrow (260,400);
+	    print_arrow_right (450,400);
+        char enter[]="Enter";
+        Button(130, 80, 630, 430, BUTTONCOL, BLACK, BUTTONFONT, enter, 5);
+
+}
+
+static  char* key_array[][3] = { {'7','8','9'},{'4','5','6'},{'1','2','3'},{'<','0','>'}};
+
+
+
+char key_pressed (int x, int y){
+    if((x<=540  && x>=260 ) && (y<=460&& y>=180)){
+    int i,j;
+    i=(x-260)/93;
+    j=(y-180)/70;
+    return (char)key_array[j][i];
+    }
+    else
+        return 'x';
+}
+
+
 
 void StartingScreen(int colour){
     int font_letters;
@@ -4522,3 +4653,17 @@ int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR){
         return FALSE;
 
 }
+void Pal (){
+int i,j;
+int x1=0;
+int x2=700;
+int y=0;
+int colour=0;
+    for(i=0;i<64;i++){
+        // Draws a horizantal line from x1 to x2 at a height of y in colour colour
+        for( j=0;j<10;j++){
+         HLine(x1,x2, y, colour);
+         y++;
+     }
+     colour++;
+}}
