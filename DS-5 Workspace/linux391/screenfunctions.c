@@ -4358,6 +4358,7 @@ void First_StartingScreen(){
 }
 
 void keypad_screen (SerialConf * touch_conf, char number[], int size){
+
     Point touch;
     keypad_screen_init();
     int pos=0;
@@ -4430,9 +4431,11 @@ void keypad_update(int pos, char val){
 		return;
 
 }
+
 int check_enter (int x, int y){
     return ((x>=370 && x<=420)&& (y>=580 && y<=800));
 }
+
 
 
 void keypad_screen_init () {
@@ -4462,6 +4465,7 @@ void keypad_screen_init () {
 	    print_arrow (260,400);
 	    print_arrow_right (450,400);
         char enter[]="Enter";
+
         Button(130, 80, 630, 430, BUTTONCOL, BLACK, BUTTONFONT, enter, 5);
 
 }
@@ -4480,7 +4484,6 @@ char key_pressed (int x, int y){
     else
         return 'x';
 }
-
 
 
 void StartingScreen(int colour){

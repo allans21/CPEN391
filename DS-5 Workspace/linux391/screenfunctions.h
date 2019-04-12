@@ -138,11 +138,12 @@ void Complete(int newBalance);
 int IsInBox(int x,int y,int x_upper_L,int y_upperL, int x_lowerR, int y_lowerR);
 
 void keypad_screen (SerialConf * touch_conf, char array [], int size);
-	
+
 void keypad_update(int pos, char val);
 void keypad_screen_init ();
 	  
 char key_pressed (int x, int y);
 int check_enter(int x, int y);
+
 
 #endif // SCREENFUNCTIONS_H_

@@ -42,7 +42,9 @@ enum state{
 };
 
 volatile int virtual_base;
+
 int main_tes () {
+
 
 	int fd;
 
@@ -136,6 +138,7 @@ int main_tes () {
 		 Pal();
 		 sleep(1000);
 		 keypad_screen(touch_conf, key,4);
+
 		}
 		 WaitForTouch(touch_conf);
 			    WaitForReleased(touch_conf);
@@ -175,3 +178,4 @@ int main_tes () {
 
 return 0;
 }
+

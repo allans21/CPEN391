@@ -145,10 +145,15 @@ def signup():
     if(age < 6935):
         return render_template("ErrorMessage.html", error_message="Sorry you are not of legal age and can not make an account until you are 19", new_page="HomeScreen.html")
 
+    if(len(card) != 16):
+        return render_template("ErrorMessage.html", error_message="Invalid credit card number", new_page="SignUp.html", access_token = 40, user=None)
+
+
     error = db.customer.insertCustomer(db_conn, liID, email, address, phone, name, 0, password, card)
 
     if(error == 0):
         return render_template("ErrorMessage.html", error_message="That email is already connected to an account.", new_page="SignUp.html")
+    
     customer = db.customer.getCustomerByEmail(db_conn, email)
     access_token = customer.id
     print(customer.password)
@@ -260,7 +265,9 @@ def creditschange():
     if not credits :
         return render_template("ErrorMessage.html", error_message="Missing how many credits to add", new_page="CustomersAccount.html")
 
-    if isinstance(credits, str):
+    try:
+        credits = int(credits)
+    except:
         return render_template("ErrorMessage.html", error_message="You did not enter a number for how many credits to add", new_page="CustomersAccount.html")
 
 
